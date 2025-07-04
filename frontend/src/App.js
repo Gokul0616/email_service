@@ -382,6 +382,122 @@ function App() {
             </div>
           )}
 
+          {/* Authentication Check Tab */}
+          {activeTab === 'auth' && (
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <span className="bg-red-100 text-red-600 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-3">
+                  🔐
+                </span>
+                Email Authentication Checker
+              </h2>
+              
+              {/* Authentication Warning */}
+              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-6">
+                <h3 className="font-bold text-yellow-800 mb-2">⚠️ Important: Email Authentication Required</h3>
+                <p className="text-sm text-yellow-700 mb-2">
+                  Major email providers (Gmail, Yahoo, Outlook) require proper email authentication to prevent spam. 
+                  You need to set up SPF, DKIM, and DMARC records for your domain.
+                </p>
+                <ul className="text-sm text-yellow-700 list-disc list-inside">
+                  <li><strong>Use your own domain</strong> - Don't send FROM Gmail/Yahoo addresses</li>
+                  <li><strong>Set up DNS records</strong> - Configure SPF, DKIM, and DMARC</li>
+                  <li><strong>Domain verification</strong> - Verify domain ownership with email providers</li>
+                </ul>
+              </div>
+              
+              <form onSubmit={handleAuthCheck} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Check Domain Authentication Status
+                  </label>
+                  <input
+                    type="text"
+                    value={authCheckDomain}
+                    onChange={(e) => setAuthCheckDomain(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                    placeholder="yourdomain.com"
+                  />
+                </div>
+                
+                <button
+                  type="submit"
+                  className="w-full py-3 px-4 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  Check Authentication Status
+                </button>
+              </form>
+              
+              {/* Authentication Check Result */}
+              {authCheckResult && !authCheckResult.error && (
+                <div className="mt-6 space-y-4">
+                  <div className={`p-4 rounded-lg ${
+                    authCheckResult.ready_for_sending ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                  }`}>
+                    <h3 className={`font-bold mb-2 ${
+                      authCheckResult.ready_for_sending ? 'text-green-800' : 'text-red-800'
+                    }`}>
+                      Authentication Status for {authCheckResult.domain}
+                    </h3>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div className="text-center">
+                        <div className={`w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                          authCheckResult.authentication_status.spf_configured ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                        }`}>
+                          {authCheckResult.authentication_status.spf_configured ? '✅' : '❌'}
+                        </div>
+                        <p className="font-medium">SPF</p>
+                      </div>
+                      <div className="text-center">
+                        <div className={`w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                          authCheckResult.authentication_status.dkim_configured ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                        }`}>
+                          {authCheckResult.authentication_status.dkim_configured ? '✅' : '❌'}
+                        </div>
+                        <p className="font-medium">DKIM</p>
+                      </div>
+                      <div className="text-center">
+                        <div className={`w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                          authCheckResult.authentication_status.dmarc_configured ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                        }`}>
+                          {authCheckResult.authentication_status.dmarc_configured ? '✅' : '❌'}
+                        </div>
+                        <p className="font-medium">DMARC</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {authCheckResult.setup_required.length > 0 && (
+                    <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                      <h4 className="font-bold text-blue-800 mb-2">Setup Required:</h4>
+                      <ul className="text-sm text-blue-700 list-disc list-inside space-y-1">
+                        {authCheckResult.setup_required.map((instruction, index) => (
+                          <li key={index}>{instruction}</li>
+                        ))}
+                      </ul>
+                      <p className="text-sm text-blue-600 mt-2">
+                        Use the "DNS Setup" tab to generate the required DNS records for your domain.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {authCheckResult.existing_records.spf && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <h5 className="font-medium text-gray-800">Current SPF Record:</h5>
+                      <p className="text-sm text-gray-600 font-mono">{authCheckResult.existing_records.spf}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {authCheckResult && authCheckResult.error && (
+                <div className="mt-6 bg-red-50 border border-red-200 p-4 rounded-md">
+                  <p className="text-red-800">{authCheckResult.error}</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* MX Lookup Tab */}
           {activeTab === 'mx' && (
             <div className="bg-white rounded-lg shadow-lg p-6">
