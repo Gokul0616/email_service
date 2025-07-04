@@ -211,17 +211,80 @@ backend:
         comment: "DNS records API is working correctly. Successfully generates SPF, DKIM, and DMARC records for domains with proper instructions."
 
 frontend:
-  - task: "Email Client UI"
+  - task: "Send Email Tab"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Send Email tab implemented with form fields for to_email, from_email, from_name, subject, body, is_html checkbox"
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Send Email tab functionality including form validation and API integration"
+
+  - task: "MX Lookup Tab"
     implemented: true
     working: "NA"
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Email client UI implemented"
+        comment: "MX Lookup tab implemented with domain input and results display"
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing MX Lookup tab functionality including API integration"
+
+  - task: "Received Emails Tab"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Received Emails tab implemented with email list display and refresh button"
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Received Emails tab functionality including API integration"
+
+  - task: "DNS Setup Tab"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "DNS Setup tab implemented with domain input and DNS records display"
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing DNS Setup tab functionality including API integration"
+
+  - task: "Server Status Tab"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Server Status tab implemented with server information display and refresh button"
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Server Status tab functionality including API integration"
 
 metadata:
   created_by: "testing_agent"
