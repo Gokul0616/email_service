@@ -135,21 +135,24 @@ def main():
     
     tester = EmailServiceTester()
     
-    # Test health endpoint
+    # 1. Test health endpoint
+    print("\n🔍 TESTING HEALTH ENDPOINT")
     tester.test_health_endpoint()
     
-    # Test MX record lookup
+    # 2. Test MX record lookup for multiple domains
+    print("\n🔍 TESTING MX RECORD LOOKUP")
     tester.test_mx_lookup("gmail.com")
     tester.test_mx_lookup("yahoo.com")
+    tester.test_mx_lookup("outlook.com")
     
-    # Test sending email
-    # Note: This might fail depending on the server's ability to connect to Gmail's SMTP servers
+    # 3. Test sending email with the specified test data
+    print("\n🔍 TESTING EMAIL SENDING")
     tester.test_send_email(
-        "test@gmail.com",  # Replace with a valid test email if needed
+        "test@gmail.com",
         "test@example.com",
-        "Test Sender",
-        "Test Email from Custom SMTP Client",
-        "This is a test email sent from our custom SMTP client implementation."
+        "Test User",
+        "Test from Custom SMTP Client",
+        "This is a test email from our custom SMTP implementation."
     )
     
     # Print summary
