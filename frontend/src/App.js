@@ -238,6 +238,24 @@ function App() {
                 Send Email with DKIM Authentication
               </h2>
               
+              {/* Authentication Notice */}
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
+                <div className="flex items-start">
+                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">
+                    💡
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-blue-800 mb-1">Email Authentication Tips</h3>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• <strong>Use your own domain</strong> for the "From" address (not Gmail/Yahoo/Outlook)</li>
+                      <li>• Check the <strong>"Auth Check"</strong> tab to verify your domain's authentication status</li>
+                      <li>• Use the <strong>"DNS Setup"</strong> tab to get the required DNS records for your domain</li>
+                      <li>• Major email providers require SPF, DKIM, and DMARC records to accept emails</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
               <form onSubmit={handleSendEmail} className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
