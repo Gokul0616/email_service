@@ -359,8 +359,21 @@ async def send_email(email: EmailMessage):
                 message="Invalid sender email address format"
             )
         
+        # Extract sender domain for authentication check
+        sender_domain = email.from_email.split('@')[1]
+        
+        # Check if sender domain is properly configured for email authentication
+        auth_warning = ""
+        if sender_domain in ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com']:
+            auth_warning = " Note: You cannot send emails FROM major email providers (Gmail, Yahoo, etc.) without their SMTP servers. Use your own domain for the 'from' address."
+        
         # Send email with authentication
         result = smtp_client.send_email(email)
+        
+        # Add authentication guidance to error messages
+        if not result.success and "authentication" in result.message.lower():
+            result.message += f"{auth_warning} To fix authentication issues, you need to: 1) Use your own domain, 2) Set up DNS records (SPF, DKIM, DMARC), 3) Configure domain verification."
+        
         return result
     
     except Exception as e:
