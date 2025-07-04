@@ -11,6 +11,10 @@ from datetime import datetime
 from typing import List, Optional
 import json
 
+# Import our custom modules
+from email_auth import EmailAuthenticator
+from smtp_server import smtp_server
+
 app = FastAPI()
 
 # CORS configuration
@@ -36,6 +40,14 @@ class EmailResponse(BaseModel):
     message: str
     message_id: Optional[str] = None
 
+class UserRegistration(BaseModel):
+    email: str
+    password: str
+    full_name: str
+
+# Initialize email authenticator
+email_auth = EmailAuthenticator(domain="customemailserver.com")
+
 # DNS MX Record Lookup Implementation
 class DNSResolver:
     def __init__(self):
@@ -52,7 +64,7 @@ class DNSResolver:
         except Exception as e:
             raise Exception(f"Failed to resolve MX records for {domain}: {str(e)}")
 
-# Raw Socket SMTP Client Implementation
+# Enhanced Raw Socket SMTP Client Implementation
 class SMTPClient:
     def __init__(self):
         self.dns_resolver = DNSResolver()
@@ -62,7 +74,7 @@ class SMTPClient:
         self.server_capabilities = []
     
     def send_email(self, email: EmailMessage) -> EmailResponse:
-        """Send email using raw SMTP protocol"""
+        """Send email using raw SMTP protocol with authentication"""
         try:
             # Extract domain from recipient email
             recipient_domain = email.to_email.split('@')[1]
@@ -132,12 +144,12 @@ class SMTPClient:
             # Start TLS if supported
             self._start_tls_if_supported(mx_server)
             
-            # Send email
+            # Send email with authentication
             message_id = self._send_smtp_commands(email)
             
             return EmailResponse(
                 success=True,
-                message=f"Email sent successfully via {mx_server}",
+                message=f"Email sent successfully via {mx_server} with DKIM authentication",
                 message_id=message_id
             )
         
@@ -207,7 +219,7 @@ class SMTPClient:
             print("STARTTLS not supported by server")
     
     def _send_smtp_commands(self, email: EmailMessage) -> str:
-        """Send SMTP commands to deliver email"""
+        """Send SMTP commands to deliver email with authentication"""
         # MAIL FROM command
         self._send_command(f"MAIL FROM:<{email.from_email}>")
         response = self._read_response()
@@ -226,51 +238,29 @@ class SMTPClient:
         if not response.startswith('354'):
             raise Exception(f"DATA command failed: {response}")
         
-        # Send message content
+        # Send authenticated message content
         message_id = str(uuid.uuid4())
-        message_content = self._build_email_message(email, message_id)
         
-        self._send_raw_data(message_content)
+        # Use the email authenticator to build the message with DKIM
+        authenticated_message = email_auth.build_authenticated_message(
+            email.from_email, email.to_email, email.subject, 
+            email.body, message_id, email.is_html
+        )
+        
+        self._send_raw_data(authenticated_message)
         self._send_raw_data("\r\n.\r\n")  # End of message
         
         response = self._read_response()
         if not response.startswith('250'):
             raise Exception(f"Message delivery failed: {response}")
         
-        print("Email message delivered successfully")
+        print("Email message delivered successfully with DKIM authentication")
         
         # QUIT command
         self._send_command("QUIT")
         self._read_response()
         
         return message_id
-    
-    def _build_email_message(self, email: EmailMessage, message_id: str) -> str:
-        """Build RFC 5322 compliant email message"""
-        headers = []
-        
-        # Required headers
-        headers.append(f"Message-ID: <{message_id}@custom-mail-server>")
-        headers.append(f"Date: {datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S +0000')}")
-        headers.append(f"From: {email.from_name} <{email.from_email}>")
-        headers.append(f"To: {email.to_email}")
-        headers.append(f"Subject: {email.subject}")
-        
-        # MIME headers
-        if email.is_html:
-            headers.append("Content-Type: text/html; charset=utf-8")
-        else:
-            headers.append("Content-Type: text/plain; charset=utf-8")
-        
-        headers.append("Content-Transfer-Encoding: 8bit")
-        headers.append("MIME-Version: 1.0")
-        
-        # Build complete message
-        message = "\r\n".join(headers)
-        message += "\r\n\r\n"
-        message += email.body
-        
-        return message
     
     def _send_command(self, command: str):
         """Send SMTP command"""
@@ -337,10 +327,24 @@ class SMTPClient:
 # Initialize SMTP client
 smtp_client = SMTPClient()
 
+# Start SMTP server on startup
+@app.on_event("startup")
+async def startup_event():
+    """Start services on application startup"""
+    print("Starting Custom Email Server...")
+    smtp_server.start_server()
+    print("Email authentication system initialized")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Stop services on application shutdown"""
+    smtp_server.stop_server()
+
 # API Endpoints
+
 @app.post("/api/send-email", response_model=EmailResponse)
 async def send_email(email: EmailMessage):
-    """Send email using custom SMTP client"""
+    """Send email using custom SMTP client with authentication"""
     try:
         # Basic validation
         if not email.to_email or '@' not in email.to_email:
@@ -355,7 +359,7 @@ async def send_email(email: EmailMessage):
                 message="Invalid sender email address format"
             )
         
-        # Send email
+        # Send email with authentication
         result = smtp_client.send_email(email)
         return result
     
@@ -380,10 +384,72 @@ async def test_mx_lookup(domain: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/received-emails")
+async def get_received_emails():
+    """Get all received emails from SMTP server"""
+    try:
+        emails = smtp_server.get_all_received_emails()
+        return {
+            "emails": emails,
+            "count": len(emails)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/user-emails/{email_address}")
+async def get_user_emails(email_address: str, folder: str = "inbox"):
+    """Get emails for a specific user"""
+    try:
+        emails = smtp_server.get_user_emails(email_address, folder)
+        return {
+            "user": email_address,
+            "folder": folder,
+            "emails": emails,
+            "count": len(emails)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/server-status")
+async def get_server_status():
+    """Get SMTP server status"""
+    try:
+        status = smtp_server.get_server_status()
+        return status
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/dns-records/{domain}")
+async def get_dns_records(domain: str):
+    """Get required DNS records for email authentication"""
+    try:
+        records = email_auth.get_dns_records_for_domain(domain)
+        return {
+            "domain": domain,
+            "records": records,
+            "instructions": {
+                "spf": "Add this TXT record to your domain's DNS to authorize this server to send emails",
+                "dkim": "Add this TXT record to enable DKIM signing for your emails",
+                "dmarc": "Add this TXT record to set up DMARC policy for your domain"
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "service": "custom-email-server"}
+    return {
+        "status": "healthy", 
+        "service": "custom-email-server",
+        "features": [
+            "Raw Socket SMTP Client",
+            "DKIM Authentication", 
+            "SMTP Server",
+            "DNS MX Resolution",
+            "Multi-user Mailboxes"
+        ]
+    }
 
 if __name__ == "__main__":
     import uvicorn
