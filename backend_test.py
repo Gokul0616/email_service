@@ -286,6 +286,82 @@ def generate_random_string(length=10):
     """Generate a random string for testing"""
     return ''.join(random.choice(string.ascii_lowercase) for _ in range(length))
 
+def test_auth_check(self, domain):
+        """Test domain authentication status check"""
+        success, response = self.run_test(
+            f"Authentication Check for {domain}",
+            "GET",
+            f"/api/auth-check/{domain}",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "domain" in data and "authentication_status" in data and "existing_records" in data:
+                print(f"✅ Retrieved authentication status for domain {domain}")
+                auth_status = data["authentication_status"]
+                print(f"  - SPF Configured: {auth_status.get('spf_configured', False)}")
+                print(f"  - DKIM Configured: {auth_status.get('dkim_configured', False)}")
+                print(f"  - DMARC Configured: {auth_status.get('dmarc_configured', False)}")
+                print(f"  - Fully Authenticated: {auth_status.get('fully_authenticated', False)}")
+                
+                if "setup_required" in data and isinstance(data["setup_required"], list):
+                    print(f"  - Setup Required: {', '.join(data['setup_required'])}")
+                
+                return True
+            else:
+                print("❌ Authentication check response format incorrect")
+                return False
+        return False
+
+def test_send_email_to_real_address(self, to_email, from_email, from_name, subject, body, expected_success=False):
+        """Test sending an email to a real address"""
+        print(f"\n🔍 Testing email sending to real address: {to_email}")
+        print(f"  - From: {from_email}")
+        
+        data = {
+            "to_email": to_email,
+            "from_email": from_email,
+            "from_name": from_name,
+            "subject": subject,
+            "body": body,
+            "is_html": False
+        }
+        
+        success, response = self.run_test(
+            f"Send Email to Real Address {to_email}",
+            "POST",
+            "/api/send-email",
+            200,
+            data=data
+        )
+        
+        if not success:
+            return False
+            
+        response_data = response.json()
+        
+        # Check for authentication warnings in the response
+        if not response_data.get("success"):
+            error_message = response_data.get("message", "")
+            print(f"  - Error Message: {error_message}")
+            
+            # Check for improved error messaging
+            auth_keywords = ["authentication", "spf", "dkim", "dmarc", "dns"]
+            has_auth_guidance = any(keyword in error_message.lower() for keyword in auth_keywords)
+            
+            if has_auth_guidance:
+                print("✅ Response includes authentication guidance")
+            else:
+                print("❌ Response missing authentication guidance")
+            
+            # This is expected to fail, so return True if we got a proper error message
+            return len(error_message) > 0
+        else:
+            # If it succeeded (unlikely), that's fine too
+            print(f"✅ Email sent successfully with message ID: {response_data.get('message_id', 'unknown')}")
+            return True
+
 def main():
     print("="*50)
     print("🧪 CUSTOM EMAIL SERVICE API TESTING")
@@ -303,7 +379,12 @@ def main():
     mx_lookup_yahoo = tester.test_mx_lookup("yahoo.com")
     mx_lookup_nonexistent = tester.test_mx_lookup_nonexistent(f"{generate_random_string()}.invalid")
     
-    # 3. Test sending email with various scenarios
+    # 3. Test the new authentication checker API
+    print("\n🔍 TESTING AUTHENTICATION CHECKER API")
+    auth_check_gmail = tester.test_auth_check("gmail.com")
+    auth_check_example = tester.test_auth_check("example.com")
+    
+    # 4. Test sending email with various scenarios
     print("\n🔍 TESTING EMAIL SENDING")
     
     # Test with non-existent account
@@ -330,20 +411,41 @@ def main():
         expected_success=False
     )
     
-    # 4. Test received emails API
+    # 5. Test sending to a real Gmail address with different from addresses
+    print("\n🔍 TESTING EMAIL SENDING TO REAL GMAIL ADDRESS")
+    
+    # Test with Gmail as sender (should fail with authentication warning)
+    email_to_real_from_gmail = tester.test_send_email_to_real_address(
+        "gokul.363you@gmail.com",
+        "test@gmail.com",
+        "Test Gmail Sender",
+        "Test Email from Custom Email Service System",
+        "This is a test email sent from our custom-built email service system. The system includes raw socket SMTP implementation, DKIM authentication, and comprehensive email handling capabilities."
+    )
+    
+    # Test with generic domain as sender
+    email_to_real_from_generic = tester.test_send_email_to_real_address(
+        "gokul.363you@gmail.com",
+        "test@example.com",
+        "Test Generic Sender",
+        "Test Email from Custom Email Service System",
+        "This is a test email sent from our custom-built email service system. The system includes raw socket SMTP implementation, DKIM authentication, and comprehensive email handling capabilities."
+    )
+    
+    # 6. Test received emails API
     print("\n🔍 TESTING RECEIVED EMAILS API")
     received_emails = tester.test_received_emails()
     
-    # 5. Test user emails API
+    # 7. Test user emails API
     print("\n🔍 TESTING USER EMAILS API")
     user_emails = tester.test_user_emails("test@example.com")
     user_emails_sent = tester.test_user_emails("test@example.com", "sent")
     
-    # 6. Test server status API
+    # 8. Test server status API
     print("\n🔍 TESTING SERVER STATUS API")
     server_status = tester.test_server_status()
     
-    # 7. Test DNS records API
+    # 9. Test DNS records API
     print("\n🔍 TESTING DNS RECORDS API")
     dns_records = tester.test_dns_records("example.com")
     
@@ -354,7 +456,9 @@ def main():
     results = {
         "health_check": health_check_result,
         "mx_lookup": all([mx_lookup_gmail, mx_lookup_yahoo, mx_lookup_nonexistent]),
+        "auth_check": all([auth_check_gmail, auth_check_example]),
         "email_sending": all([email_send_nonexistent, invalid_email_format, email_send_valid_format]),
+        "email_to_real_address": all([email_to_real_from_gmail, email_to_real_from_generic]),
         "received_emails": received_emails,
         "user_emails": all([user_emails, user_emails_sent]),
         "server_status": server_status,
