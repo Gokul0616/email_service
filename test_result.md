@@ -395,3 +395,5 @@ agent_communication:
     message: "Starting comprehensive testing of all frontend components: Send Email Tab, MX Lookup Tab, Received Emails Tab, DNS Setup Tab, and Server Status Tab."
   - agent: "testing"
     message: "Completed testing of all frontend components. All tabs are working correctly with proper form validation, API integration, and error handling. The UI is responsive and user-friendly. The application is fully functional and ready for use."
+  - agent: "testing"
+    message: "Tested the new authentication features. The Authentication Checker API works correctly for both gmail.com and example.com domains. The improved Email Sending API now provides better error messages with authentication guidance when sending fails due to authentication issues. All other APIs continue to work correctly."
