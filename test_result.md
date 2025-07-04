@@ -308,3 +308,5 @@ agent_communication:
     message: "Initializing test_result.md file with the email service system components to be tested."
   - agent: "testing"
     message: "All backend API endpoints have been tested and are working correctly. The email service system is fully functional with proper error handling and security features."
+  - agent: "testing"
+    message: "Starting comprehensive testing of all frontend components: Send Email Tab, MX Lookup Tab, Received Emails Tab, DNS Setup Tab, and Server Status Tab."
