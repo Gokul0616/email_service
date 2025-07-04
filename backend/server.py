@@ -449,6 +449,82 @@ async def get_dns_records(domain: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/auth-check/{domain}")
+async def check_domain_authentication(domain: str):
+    """Check domain authentication status and requirements"""
+    try:
+        resolver = DNSResolver()
+        
+        # Check for existing SPF record
+        spf_record = None
+        try:
+            txt_records = resolver.resolver.resolve(domain, 'TXT')
+            for record in txt_records:
+                txt_value = str(record).strip('"')
+                if txt_value.startswith('v=spf1'):
+                    spf_record = txt_value
+                    break
+        except:
+            pass
+        
+        # Check for existing DKIM record
+        dkim_record = None
+        try:
+            dkim_domain = f"default._domainkey.{domain}"
+            txt_records = resolver.resolver.resolve(dkim_domain, 'TXT')
+            for record in txt_records:
+                txt_value = str(record).strip('"')
+                if 'v=DKIM1' in txt_value:
+                    dkim_record = txt_value
+                    break
+        except:
+            pass
+        
+        # Check for existing DMARC record
+        dmarc_record = None
+        try:
+            dmarc_domain = f"_dmarc.{domain}"
+            txt_records = resolver.resolver.resolve(dmarc_domain, 'TXT')
+            for record in txt_records:
+                txt_value = str(record).strip('"')
+                if txt_value.startswith('v=DMARC1'):
+                    dmarc_record = txt_value
+                    break
+        except:
+            pass
+        
+        # Determine authentication status
+        auth_status = {
+            "spf_configured": spf_record is not None,
+            "dkim_configured": dkim_record is not None,
+            "dmarc_configured": dmarc_record is not None,
+            "fully_authenticated": all([spf_record, dkim_record, dmarc_record])
+        }
+        
+        # Provide setup instructions
+        setup_instructions = []
+        if not spf_record:
+            setup_instructions.append("Set up SPF record to authorize email sending servers")
+        if not dkim_record:
+            setup_instructions.append("Set up DKIM record for email signing authentication")
+        if not dmarc_record:
+            setup_instructions.append("Set up DMARC record for email policy enforcement")
+        
+        return {
+            "domain": domain,
+            "authentication_status": auth_status,
+            "existing_records": {
+                "spf": spf_record,
+                "dkim": dkim_record,
+                "dmarc": dmarc_record
+            },
+            "setup_required": setup_instructions,
+            "ready_for_sending": auth_status["fully_authenticated"]
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint"""
