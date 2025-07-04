@@ -199,6 +199,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Email sending API is working correctly. Properly handles invalid email formats and non-existent email addresses with appropriate error messages. DKIM authentication is implemented."
+      - working: true
+        agent: "testing"
+        comment: "Improved email sending API tested with real Gmail address. The API now provides better error messages with authentication guidance when sending fails due to authentication issues. Properly warns about using major email providers as sender domains."
 
   - task: "Received Emails API"
     implemented: true
@@ -259,6 +262,21 @@ backend:
       - working: true
         agent: "testing"
         comment: "DNS records API is working correctly. Successfully generates SPF, DKIM, and DMARC records for domains with proper instructions."
+
+  - task: "Authentication Checker API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Authentication checker API implemented at /api/auth-check/{domain} endpoint"
+      - working: true
+        agent: "testing"
+        comment: "Authentication checker API is working correctly. Successfully checks SPF, DKIM, and DMARC records for domains like gmail.com and example.com. Provides detailed authentication status and setup instructions when needed."
 
 frontend:
   - task: "Send Email Tab"
