@@ -293,9 +293,14 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus: 
+    - "Send Email Tab"
+    - "MX Lookup Tab"
+    - "Received Emails Tab"
+    - "DNS Setup Tab"
+    - "Server Status Tab"
   stuck_tasks: []
-  test_all: false
+  test_all: true
   test_priority: "high_first"
 
 agent_communication:
