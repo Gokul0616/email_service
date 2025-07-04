@@ -377,13 +377,10 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "Send Email Tab"
-    - "MX Lookup Tab"
-    - "Received Emails Tab"
-    - "DNS Setup Tab"
-    - "Server Status Tab"
+    - "Authentication Checker API"
+    - "Email Sending API"
   stuck_tasks: []
-  test_all: true
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
