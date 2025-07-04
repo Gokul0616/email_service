@@ -12,8 +12,8 @@ from typing import List, Optional
 import json
 
 # Import our custom modules
-from email_auth import EmailAuthenticator
-from smtp_server import smtp_server
+from backend.email_auth import EmailAuthenticator
+from backend.smtp_server import smtp_server
 
 app = FastAPI()
 
