@@ -4,8 +4,7 @@ from pydantic import BaseModel
 import os
 import socket
 import ssl
-import struct
-import base64
+import dns.resolver
 import uuid
 import re
 from datetime import datetime
@@ -40,139 +39,18 @@ class EmailResponse(BaseModel):
 # DNS MX Record Lookup Implementation
 class DNSResolver:
     def __init__(self):
-        self.dns_servers = ['8.8.8.8', '1.1.1.1', '8.8.4.4']
+        self.resolver = dns.resolver.Resolver()
+        self.resolver.nameservers = ['8.8.8.8', '1.1.1.1', '8.8.4.4']
+        self.resolver.timeout = 5
+        self.resolver.lifetime = 10
     
     def query_mx_records(self, domain: str) -> List[tuple]:
-        """Query MX records for a domain using raw DNS protocol"""
-        for dns_server in self.dns_servers:
-            try:
-                return self._query_mx_from_server(domain, dns_server)
-            except Exception as e:
-                print(f"Failed to query {dns_server}: {e}")
-                continue
-        raise Exception(f"Failed to resolve MX records for {domain}")
-    
-    def _query_mx_from_server(self, domain: str, dns_server: str) -> List[tuple]:
-        """Send raw DNS query for MX records"""
-        # Create DNS query packet
-        query_id = struct.pack('>H', 0x1234)  # Query ID
-        flags = struct.pack('>H', 0x0100)    # Standard query
-        questions = struct.pack('>H', 1)     # Number of questions
-        answers = struct.pack('>H', 0)       # Number of answers
-        authority = struct.pack('>H', 0)     # Number of authority records
-        additional = struct.pack('>H', 0)    # Number of additional records
-        
-        # Build question section
-        question = self._build_dns_question(domain, 15)  # 15 = MX record type
-        
-        # Complete DNS packet
-        dns_packet = query_id + flags + questions + answers + authority + additional + question
-        
-        # Send DNS query
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(5)
+        """Query MX records for a domain"""
         try:
-            sock.sendto(dns_packet, (dns_server, 53))
-            response, _ = sock.recvfrom(1024)
-            return self._parse_mx_response(response)
-        finally:
-            sock.close()
-    
-    def _build_dns_question(self, domain: str, qtype: int) -> bytes:
-        """Build DNS question section"""
-        question = b''
-        
-        # Encode domain name
-        for part in domain.split('.'):
-            question += struct.pack('B', len(part)) + part.encode('ascii')
-        question += b'\x00'  # End of domain name
-        
-        # Add question type (MX = 15) and class (IN = 1)
-        question += struct.pack('>HH', qtype, 1)
-        
-        return question
-    
-    def _parse_mx_response(self, response: bytes) -> List[tuple]:
-        """Parse DNS response and extract MX records"""
-        if len(response) < 12:
-            raise Exception("Invalid DNS response")
-        
-        # Parse header
-        header = struct.unpack('>HHHHHH', response[:12])
-        answer_count = header[3]
-        
-        if answer_count == 0:
-            return []
-        
-        # Skip question section
-        offset = 12
-        while offset < len(response) and response[offset] != 0:
-            if response[offset] >= 192:  # Compression pointer
-                offset += 2
-                break
-            offset += response[offset] + 1
-        offset += 5  # Skip null terminator and question type/class
-        
-        # Parse answer section
-        mx_records = []
-        for _ in range(answer_count):
-            if offset >= len(response):
-                break
-            
-            # Skip name (can be compressed)
-            if response[offset] >= 192:
-                offset += 2
-            else:
-                while offset < len(response) and response[offset] != 0:
-                    offset += response[offset] + 1
-                offset += 1
-            
-            if offset + 10 > len(response):
-                break
-            
-            # Parse answer header
-            answer_header = struct.unpack('>HHIHH', response[offset:offset+10])
-            record_type = answer_header[0]
-            data_length = answer_header[4]
-            offset += 10
-            
-            if record_type == 15 and offset + data_length <= len(response):  # MX record
-                priority = struct.unpack('>H', response[offset:offset+2])[0]
-                offset += 2
-                
-                # Parse MX hostname
-                hostname = self._parse_domain_name(response, offset)
-                mx_records.append((priority, hostname))
-                offset += data_length - 2
-            else:
-                offset += data_length
-        
-        return sorted(mx_records, key=lambda x: x[0])  # Sort by priority
-    
-    def _parse_domain_name(self, response: bytes, offset: int) -> str:
-        """Parse domain name from DNS response (handles compression)"""
-        parts = []
-        original_offset = offset
-        jumped = False
-        
-        while offset < len(response):
-            length = response[offset]
-            
-            if length == 0:
-                break
-            elif length >= 192:  # Compression pointer
-                if not jumped:
-                    original_offset = offset + 2
-                    jumped = True
-                offset = ((length & 0x3F) << 8) | response[offset + 1]
-            else:
-                offset += 1
-                if offset + length > len(response):
-                    break
-                parts.append(response[offset:offset+length].decode('ascii'))
-                offset += length
-        
-        return '.'.join(parts)
+            mx_records = self.resolver.resolve(domain, 'MX')
+            return [(record.preference, str(record.exchange).rstrip('.')) for record in mx_records]
+        except Exception as e:
+            raise Exception(f"Failed to resolve MX records for {domain}: {str(e)}")
 
 # Raw Socket SMTP Client Implementation
 class SMTPClient:
@@ -181,7 +59,7 @@ class SMTPClient:
         self.socket = None
         self.ssl_socket = None
         self.connected = False
-        self.authenticated = False
+        self.server_capabilities = []
     
     def send_email(self, email: EmailMessage) -> EmailResponse:
         """Send email using raw SMTP protocol"""
@@ -195,10 +73,14 @@ class SMTPClient:
             if not mx_records:
                 raise Exception(f"No MX records found for {recipient_domain}")
             
+            # Sort by priority (lower number = higher priority)
+            mx_records.sort(key=lambda x: x[0])
+            
             # Try each MX server in order of priority
             last_error = None
             for priority, mx_server in mx_records:
                 try:
+                    print(f"Attempting to send via {mx_server} (priority {priority})")
                     return self._send_via_mx_server(mx_server, email)
                 except Exception as e:
                     last_error = e
@@ -208,6 +90,7 @@ class SMTPClient:
             raise Exception(f"Failed to send email via any MX server. Last error: {last_error}")
         
         except Exception as e:
+            print(f"Email sending error: {e}")
             return EmailResponse(success=False, message=str(e))
     
     def _send_via_mx_server(self, mx_server: str, email: EmailMessage) -> EmailResponse:
@@ -220,7 +103,7 @@ class SMTPClient:
             self._smtp_handshake(email.from_email.split('@')[1])
             
             # Start TLS if supported
-            self._start_tls_if_supported()
+            self._start_tls_if_supported(mx_server)
             
             # Send email
             message_id = self._send_smtp_commands(email)
@@ -240,11 +123,13 @@ class SMTPClient:
         self.socket.settimeout(30)
         
         try:
+            print(f"Connecting to {host}:{port}")
             self.socket.connect((host, port))
             self.connected = True
             
             # Read server greeting
             response = self._read_response()
+            print(f"Server greeting: {response}")
             if not response.startswith('220'):
                 raise Exception(f"Server rejected connection: {response}")
         
@@ -267,10 +152,12 @@ class SMTPClient:
         
         # Parse server capabilities
         self.server_capabilities = response.split('\n')
+        print(f"Server capabilities: {len(self.server_capabilities)} features")
     
-    def _start_tls_if_supported(self):
+    def _start_tls_if_supported(self, hostname: str):
         """Start TLS if server supports it"""
         if any('STARTTLS' in cap for cap in self.server_capabilities):
+            print("STARTTLS is supported, initiating TLS")
             self._send_command("STARTTLS")
             response = self._read_response()
             
@@ -280,10 +167,17 @@ class SMTPClient:
                 context.check_hostname = False
                 context.verify_mode = ssl.CERT_NONE
                 
-                self.ssl_socket = context.wrap_socket(self.socket, server_hostname=None)
+                self.ssl_socket = context.wrap_socket(self.socket, server_hostname=hostname)
                 self.socket = self.ssl_socket
                 
-                print("TLS connection established")
+                print("TLS connection established successfully")
+                
+                # Re-send EHLO after TLS
+                self._smtp_handshake(hostname)
+            else:
+                print(f"STARTTLS failed: {response}")
+        else:
+            print("STARTTLS not supported by server")
     
     def _send_smtp_commands(self, email: EmailMessage) -> str:
         """Send SMTP commands to deliver email"""
@@ -315,6 +209,8 @@ class SMTPClient:
         response = self._read_response()
         if not response.startswith('250'):
             raise Exception(f"Message delivery failed: {response}")
+        
+        print("Email message delivered successfully")
         
         # QUIT command
         self._send_command("QUIT")
@@ -366,13 +262,31 @@ class SMTPClient:
         
         response = b''
         while True:
-            chunk = self.socket.recv(1024)
-            if not chunk:
+            try:
+                chunk = self.socket.recv(1024)
+                if not chunk:
+                    break
+                response += chunk
+                
+                # Check if we have a complete response
+                if b'\r\n' in response:
+                    # Handle multi-line responses
+                    lines = response.decode('utf-8').split('\r\n')
+                    if lines[-1] == '':
+                        lines = lines[:-1]
+                    
+                    # Check if last line indicates end of response
+                    if lines and len(lines[-1]) >= 4 and lines[-1][3] == ' ':
+                        break
+                    
+                    # Continue reading if there's more data
+                    if len(lines) == 1:
+                        break
+                        
+            except socket.timeout:
                 break
-            response += chunk
-            
-            # Check if we have a complete response
-            if b'\r\n' in response:
+            except Exception as e:
+                print(f"Error reading response: {e}")
                 break
         
         decoded_response = response.decode('utf-8').strip()
@@ -381,15 +295,17 @@ class SMTPClient:
     
     def _disconnect(self):
         """Disconnect from server"""
-        if self.ssl_socket:
-            self.ssl_socket.close()
-        if self.socket:
-            self.socket.close()
+        try:
+            if self.ssl_socket:
+                self.ssl_socket.close()
+            if self.socket:
+                self.socket.close()
+        except:
+            pass
         
         self.socket = None
         self.ssl_socket = None
         self.connected = False
-        self.authenticated = False
 
 # Initialize SMTP client
 smtp_client = SMTPClient()
