@@ -2,6 +2,8 @@ import requests
 import json
 import sys
 import time
+import random
+import string
 
 class EmailServiceTester:
     def __init__(self, base_url="https://a5842474-a2d4-4669-8481-38e27e7f34ba.preview.emergentagent.com"):
@@ -85,6 +87,20 @@ class EmailServiceTester:
             else:
                 print("❌ MX lookup response format incorrect")
                 return False
+        return False
+    
+    def test_mx_lookup_nonexistent(self, domain):
+        """Test MX record lookup for a non-existent domain"""
+        success, response = self.run_test(
+            f"MX Lookup for non-existent domain {domain}",
+            "GET",
+            f"/api/test-mx/{domain}",
+            500  # Expecting error for non-existent domain
+        )
+        # This should fail with a 500 error for non-existent domains
+        if success:
+            print("✅ Properly handled non-existent domain with error response")
+            return True
         return False
 
     def test_send_email(self, to_email, from_email, from_name, subject, body, expected_success=True, error_check=None):
@@ -170,6 +186,89 @@ class EmailServiceTester:
                 print("❌ Did not properly handle invalid email format")
                 return False
         return False
+    
+    def test_received_emails(self):
+        """Test getting all received emails"""
+        success, response = self.run_test(
+            "Get All Received Emails",
+            "GET",
+            "/api/received-emails",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "emails" in data and "count" in data:
+                print(f"✅ Retrieved {data['count']} received emails")
+                return True
+            else:
+                print("❌ Received emails response format incorrect")
+                return False
+        return False
+    
+    def test_user_emails(self, email_address, folder="inbox"):
+        """Test getting user-specific emails"""
+        success, response = self.run_test(
+            f"Get User Emails for {email_address}",
+            "GET",
+            f"/api/user-emails/{email_address}?folder={folder}",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "emails" in data and "count" in data and "user" in data and "folder" in data:
+                print(f"✅ Retrieved {data['count']} emails for user {email_address} in folder {folder}")
+                return True
+            else:
+                print("❌ User emails response format incorrect")
+                return False
+        return False
+    
+    def test_server_status(self):
+        """Test getting SMTP server status"""
+        success, response = self.run_test(
+            "Get Server Status",
+            "GET",
+            "/api/server-status",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "running" in data and "host" in data and "port" in data:
+                print(f"✅ Server status: Running={data['running']}, Host={data['host']}, Port={data['port']}")
+                return True
+            else:
+                print("❌ Server status response format incorrect")
+                return False
+        return False
+    
+    def test_dns_records(self, domain):
+        """Test getting DNS records for a domain"""
+        success, response = self.run_test(
+            f"Get DNS Records for {domain}",
+            "GET",
+            f"/api/dns-records/{domain}",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "domain" in data and "records" in data and "instructions" in data:
+                print(f"✅ Retrieved DNS records for domain {domain}")
+                # Check if we have the expected record types
+                records = data["records"]
+                if "spf" in records and "dkim" in records and "dmarc" in records:
+                    print("✅ All required DNS record types (SPF, DKIM, DMARC) are present")
+                    return True
+                else:
+                    print("❌ Missing some required DNS record types")
+                    return False
+            else:
+                print("❌ DNS records response format incorrect")
+                return False
+        return False
 
     def print_summary(self):
         """Print test summary"""
@@ -183,27 +282,32 @@ class EmailServiceTester:
         
         return self.tests_passed == self.tests_run
 
+def generate_random_string(length=10):
+    """Generate a random string for testing"""
+    return ''.join(random.choice(string.ascii_lowercase) for _ in range(length))
+
 def main():
     print("="*50)
-    print("🧪 CUSTOM EMAIL SERVICE API TESTING - ERROR HANDLING")
+    print("🧪 CUSTOM EMAIL SERVICE API TESTING")
     print("="*50)
     
     tester = EmailServiceTester()
     
     # 1. Test health endpoint
     print("\n🔍 TESTING HEALTH ENDPOINT")
-    tester.test_health_endpoint()
+    health_check_result = tester.test_health_endpoint()
     
     # 2. Test MX record lookup for multiple domains
     print("\n🔍 TESTING MX RECORD LOOKUP")
-    tester.test_mx_lookup("gmail.com")
-    tester.test_mx_lookup("yahoo.com")
+    mx_lookup_gmail = tester.test_mx_lookup("gmail.com")
+    mx_lookup_yahoo = tester.test_mx_lookup("yahoo.com")
+    mx_lookup_nonexistent = tester.test_mx_lookup_nonexistent(f"{generate_random_string()}.invalid")
     
-    # 3. Test sending email with invalid recipients
-    print("\n🔍 TESTING EMAIL SENDING WITH INVALID RECIPIENTS")
+    # 3. Test sending email with various scenarios
+    print("\n🔍 TESTING EMAIL SENDING")
     
     # Test with non-existent account
-    tester.test_send_email(
+    email_send_nonexistent = tester.test_send_email(
         "test@gmail.com",
         "test@example.com",
         "Test User",
@@ -213,23 +317,11 @@ def main():
         error_check="may not exist"
     )
     
-    # Test with another non-existent account
-    tester.test_send_email(
-        "nonexistent@gmail.com",
-        "test@example.com",
-        "Test User",
-        "Test to Non-existent Account",
-        "This is a test to a non-existent account.",
-        expected_success=False,
-        error_check="may not exist"
-    )
-    
     # Test with invalid email format
-    tester.test_invalid_email_format()
+    invalid_email_format = tester.test_invalid_email_format()
     
-    # 4. Test with valid format but likely to fail
-    print("\n🔍 TESTING EMAIL SENDING WITH VALID FORMAT BUT LIKELY TO FAIL")
-    tester.test_send_email(
+    # Test with valid format but likely to fail
+    email_send_valid_format = tester.test_send_email(
         "test@example.com",  # example.com might not accept emails
         "test@example.com",
         "Test User",
@@ -238,8 +330,45 @@ def main():
         expected_success=False
     )
     
+    # 4. Test received emails API
+    print("\n🔍 TESTING RECEIVED EMAILS API")
+    received_emails = tester.test_received_emails()
+    
+    # 5. Test user emails API
+    print("\n🔍 TESTING USER EMAILS API")
+    user_emails = tester.test_user_emails("test@example.com")
+    user_emails_sent = tester.test_user_emails("test@example.com", "sent")
+    
+    # 6. Test server status API
+    print("\n🔍 TESTING SERVER STATUS API")
+    server_status = tester.test_server_status()
+    
+    # 7. Test DNS records API
+    print("\n🔍 TESTING DNS RECORDS API")
+    dns_records = tester.test_dns_records("example.com")
+    
     # Print summary
     success = tester.print_summary()
+    
+    # Return results for each API category
+    results = {
+        "health_check": health_check_result,
+        "mx_lookup": all([mx_lookup_gmail, mx_lookup_yahoo, mx_lookup_nonexistent]),
+        "email_sending": all([email_send_nonexistent, invalid_email_format, email_send_valid_format]),
+        "received_emails": received_emails,
+        "user_emails": all([user_emails, user_emails_sent]),
+        "server_status": server_status,
+        "dns_records": dns_records
+    }
+    
+    print("\n" + "="*50)
+    print("📊 API CATEGORY RESULTS:")
+    print("="*50)
+    
+    for category, result in results.items():
+        status_icon = "✅" if result else "❌"
+        print(f"{status_icon} {category.replace('_', ' ').title()}")
+    
     return 0 if success else 1
 
 if __name__ == "__main__":
