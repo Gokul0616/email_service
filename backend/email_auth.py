@@ -42,6 +42,10 @@ class EmailAuthenticator:
             return message
         
         try:
+            # Extract domain from sender email
+            sender_domain = from_email.split('@')[1]
+            print(f"Signing email for domain: {sender_domain}")
+            
             # Convert message to bytes
             message_bytes = message.encode('utf-8')
             
@@ -49,14 +53,14 @@ class EmailAuthenticator:
             signature = dkim.sign(
                 message_bytes,
                 self.dkim_selector.encode('utf-8'),
-                self.domain.encode('utf-8'),
+                sender_domain.encode('utf-8'),
                 self.dkim_private_key,
                 include_headers=[b'From', b'To', b'Subject', b'Date', b'Message-ID']
             )
             
             # Combine signature with message
             signed_message = signature.decode('utf-8') + message
-            print(f"Email signed with DKIM for domain: {self.domain}")
+            print(f"Email signed with DKIM for domain: {sender_domain}")
             return signed_message
             
         except Exception as e:
