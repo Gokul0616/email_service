@@ -4,7 +4,7 @@ import sys
 import time
 
 class EmailServiceTester:
-    def __init__(self, base_url="https://abec3ab6-a9db-4d64-8e78-afb5853d77f8.preview.emergentagent.com"):
+    def __init__(self, base_url="https://a5842474-a2d4-4669-8481-38e27e7f34ba.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
