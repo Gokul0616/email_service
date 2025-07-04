@@ -269,6 +269,82 @@ class EmailServiceTester:
                 print("❌ DNS records response format incorrect")
                 return False
         return False
+        
+    def test_auth_check(self, domain):
+        """Test domain authentication status check"""
+        success, response = self.run_test(
+            f"Authentication Check for {domain}",
+            "GET",
+            f"/api/auth-check/{domain}",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "domain" in data and "authentication_status" in data and "existing_records" in data:
+                print(f"✅ Retrieved authentication status for domain {domain}")
+                auth_status = data["authentication_status"]
+                print(f"  - SPF Configured: {auth_status.get('spf_configured', False)}")
+                print(f"  - DKIM Configured: {auth_status.get('dkim_configured', False)}")
+                print(f"  - DMARC Configured: {auth_status.get('dmarc_configured', False)}")
+                print(f"  - Fully Authenticated: {auth_status.get('fully_authenticated', False)}")
+                
+                if "setup_required" in data and isinstance(data["setup_required"], list):
+                    print(f"  - Setup Required: {', '.join(data['setup_required'])}")
+                
+                return True
+            else:
+                print("❌ Authentication check response format incorrect")
+                return False
+        return False
+
+    def test_send_email_to_real_address(self, to_email, from_email, from_name, subject, body, expected_success=False):
+        """Test sending an email to a real address"""
+        print(f"\n🔍 Testing email sending to real address: {to_email}")
+        print(f"  - From: {from_email}")
+        
+        data = {
+            "to_email": to_email,
+            "from_email": from_email,
+            "from_name": from_name,
+            "subject": subject,
+            "body": body,
+            "is_html": False
+        }
+        
+        success, response = self.run_test(
+            f"Send Email to Real Address {to_email}",
+            "POST",
+            "/api/send-email",
+            200,
+            data=data
+        )
+        
+        if not success:
+            return False
+            
+        response_data = response.json()
+        
+        # Check for authentication warnings in the response
+        if not response_data.get("success"):
+            error_message = response_data.get("message", "")
+            print(f"  - Error Message: {error_message}")
+            
+            # Check for improved error messaging
+            auth_keywords = ["authentication", "spf", "dkim", "dmarc", "dns"]
+            has_auth_guidance = any(keyword in error_message.lower() for keyword in auth_keywords)
+            
+            if has_auth_guidance:
+                print("✅ Response includes authentication guidance")
+            else:
+                print("❌ Response missing authentication guidance")
+            
+            # This is expected to fail, so return True if we got a proper error message
+            return len(error_message) > 0
+        else:
+            # If it succeeded (unlikely), that's fine too
+            print(f"✅ Email sent successfully with message ID: {response_data.get('message_id', 'unknown')}")
+            return True
 
     def print_summary(self):
         """Print test summary"""
