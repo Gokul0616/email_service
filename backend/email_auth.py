@@ -108,10 +108,13 @@ class EmailAuthenticator:
                                   is_html: bool = False) -> str:
         """Build RFC 5322 compliant email message with authentication headers"""
         
+        # Extract sender domain for authentication
+        sender_domain = from_email.split('@')[1]
+        
         headers = []
         
         # Core headers
-        headers.append(f"Message-ID: <{message_id}@{self.domain}>")
+        headers.append(f"Message-ID: <{message_id}@{sender_domain}>")
         headers.append(f"Date: {datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S +0000')}")
         headers.append(f"From: {from_email}")
         headers.append(f"To: {to_email}")
@@ -136,7 +139,7 @@ class EmailAuthenticator:
         headers.append("MIME-Version: 1.0")
         
         # List management headers (helps with spam filtering)
-        headers.append(f"List-Unsubscribe: <mailto:unsubscribe@{self.domain}>")
+        headers.append(f"List-Unsubscribe: <mailto:unsubscribe@{sender_domain}>")
         headers.append(f"List-Unsubscribe-Post: List-Unsubscribe=One-Click")
         
         # Build complete message
@@ -144,7 +147,7 @@ class EmailAuthenticator:
         message += "\r\n\r\n"
         message += body
         
-        # Sign with DKIM
+        # Sign with DKIM using sender domain
         signed_message = self.sign_email_with_dkim(message, from_email)
         
         return signed_message
