@@ -165,6 +165,28 @@ function App() {
     }
   };
 
+  const handleAuthCheck = async (e) => {
+    e.preventDefault();
+    if (!authCheckDomain) return;
+    
+    try {
+      const response = await fetch(`${backendUrl}/api/auth-check/${authCheckDomain}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setAuthCheckResult(data);
+      } else {
+        setAuthCheckResult({
+          error: data.detail || 'Failed to check domain authentication'
+        });
+      }
+    } catch (error) {
+      setAuthCheckResult({
+        error: `Network error: ${error.message}`
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8">
