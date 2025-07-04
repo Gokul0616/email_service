@@ -344,21 +344,26 @@ async def send_email(email: EmailMessage):
     try:
         # Basic validation
         if not email.to_email or '@' not in email.to_email:
-            raise HTTPException(status_code=400, detail="Invalid recipient email")
+            return EmailResponse(
+                success=False,
+                message="Invalid recipient email address format"
+            )
         
         if not email.from_email or '@' not in email.from_email:
-            raise HTTPException(status_code=400, detail="Invalid sender email")
+            return EmailResponse(
+                success=False,
+                message="Invalid sender email address format"
+            )
         
         # Send email
         result = smtp_client.send_email(email)
-        
-        if not result.success:
-            raise HTTPException(status_code=500, detail=result.message)
-        
         return result
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return EmailResponse(
+            success=False,
+            message=f"Unexpected error: {str(e)}"
+        )
 
 @app.get("/api/test-mx/{domain}")
 async def test_mx_lookup(domain: str):
