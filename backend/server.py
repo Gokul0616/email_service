@@ -71,7 +71,10 @@ class SMTPClient:
             mx_records = self.dns_resolver.query_mx_records(recipient_domain)
             
             if not mx_records:
-                raise Exception(f"No MX records found for {recipient_domain}")
+                return EmailResponse(
+                    success=False, 
+                    message=f"No MX records found for {recipient_domain}. Domain may not accept email."
+                )
             
             # Sort by priority (lower number = higher priority)
             mx_records.sort(key=lambda x: x[0])
@@ -87,11 +90,35 @@ class SMTPClient:
                     print(f"Failed to send via {mx_server}: {e}")
                     continue
             
-            raise Exception(f"Failed to send email via any MX server. Last error: {last_error}")
+            # Provide more specific error messages based on the last error
+            error_message = str(last_error)
+            if "550" in error_message:
+                return EmailResponse(
+                    success=False,
+                    message=f"Email rejected by recipient server: {error_message}. The email address may not exist or is refusing mail."
+                )
+            elif "553" in error_message:
+                return EmailResponse(
+                    success=False,
+                    message=f"Email rejected due to sender policy: {error_message}. The sender address may be blocked or invalid."
+                )
+            elif "Connection refused" in error_message or "timed out" in error_message:
+                return EmailResponse(
+                    success=False,
+                    message=f"Unable to connect to mail servers for {recipient_domain}: {error_message}"
+                )
+            else:
+                return EmailResponse(
+                    success=False,
+                    message=f"Failed to send email via any MX server: {error_message}"
+                )
         
         except Exception as e:
             print(f"Email sending error: {e}")
-            return EmailResponse(success=False, message=str(e))
+            return EmailResponse(
+                success=False, 
+                message=f"Email service error: {str(e)}"
+            )
     
     def _send_via_mx_server(self, mx_server: str, email: EmailMessage) -> EmailResponse:
         """Send email via specific MX server"""
