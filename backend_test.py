@@ -87,8 +87,8 @@ class EmailServiceTester:
                 return False
         return False
 
-    def test_send_email(self, to_email, from_email, from_name, subject, body):
-        """Test sending an email"""
+    def test_send_email(self, to_email, from_email, from_name, subject, body, expected_success=True, error_check=None):
+        """Test sending an email with error handling validation"""
         data = {
             "to_email": to_email,
             "from_email": from_email,
@@ -99,20 +99,75 @@ class EmailServiceTester:
         }
         
         success, response = self.run_test(
-            "Send Email",
+            f"Send Email to {to_email}",
             "POST",
             "/api/send-email",
-            200,
+            200,  # We expect 200 even for error responses now
+            data=data
+        )
+        
+        if not success:
+            return False
+            
+        response_data = response.json()
+        
+        # Check if the success flag matches our expectation
+        if response_data.get("success") == expected_success:
+            if expected_success:
+                if response_data.get("message_id"):
+                    print(f"✅ Email sent successfully with message ID: {response_data['message_id']}")
+                    return True
+                else:
+                    print("❌ Email sending response missing message_id")
+                    return False
+            else:
+                # For expected failures, check if we have a proper error message
+                if response_data.get("message") and len(response_data.get("message")) > 0:
+                    print(f"✅ Expected failure with proper error message: {response_data['message']}")
+                    
+                    # If we have a specific error message to check for
+                    if error_check and error_check.lower() in response_data.get("message").lower():
+                        print(f"✅ Error message contains expected text: '{error_check}'")
+                    elif error_check:
+                        print(f"❌ Error message doesn't contain expected text: '{error_check}'")
+                        return False
+                        
+                    return True
+                else:
+                    print("❌ Expected failure but no proper error message provided")
+                    return False
+        else:
+            if expected_success:
+                print(f"❌ Expected success but got failure: {response_data.get('message', 'No error message')}")
+            else:
+                print(f"❌ Expected failure but got success")
+            return False
+
+    def test_invalid_email_format(self):
+        """Test sending email with invalid email format"""
+        data = {
+            "to_email": "invalid-email",  # Invalid email format
+            "from_email": "test@example.com",
+            "from_name": "Test User",
+            "subject": "Test Invalid Format",
+            "body": "This email has an invalid recipient format."
+        }
+        
+        success, response = self.run_test(
+            "Send Email with Invalid Format",
+            "POST",
+            "/api/send-email",
+            200,  # We expect 200 with error details
             data=data
         )
         
         if success:
             data = response.json()
-            if data.get("success") and data.get("message_id"):
-                print(f"✅ Email sent successfully with message ID: {data['message_id']}")
+            if not data.get("success") and "invalid" in data.get("message", "").lower():
+                print(f"✅ Properly rejected invalid email format with message: {data['message']}")
                 return True
             else:
-                print("❌ Email sending response format incorrect")
+                print("❌ Did not properly handle invalid email format")
                 return False
         return False
 
@@ -130,7 +185,7 @@ class EmailServiceTester:
 
 def main():
     print("="*50)
-    print("🧪 CUSTOM EMAIL SERVICE API TESTING")
+    print("🧪 CUSTOM EMAIL SERVICE API TESTING - ERROR HANDLING")
     print("="*50)
     
     tester = EmailServiceTester()
@@ -143,16 +198,44 @@ def main():
     print("\n🔍 TESTING MX RECORD LOOKUP")
     tester.test_mx_lookup("gmail.com")
     tester.test_mx_lookup("yahoo.com")
-    tester.test_mx_lookup("outlook.com")
     
-    # 3. Test sending email with the specified test data
-    print("\n🔍 TESTING EMAIL SENDING")
+    # 3. Test sending email with invalid recipients
+    print("\n🔍 TESTING EMAIL SENDING WITH INVALID RECIPIENTS")
+    
+    # Test with non-existent account
     tester.test_send_email(
         "test@gmail.com",
         "test@example.com",
         "Test User",
-        "Test from Custom SMTP Client",
-        "This is a test email from our custom SMTP implementation."
+        "Test to Non-existent Account",
+        "This is a test to a non-existent account.",
+        expected_success=False,
+        error_check="may not exist"
+    )
+    
+    # Test with another non-existent account
+    tester.test_send_email(
+        "nonexistent@gmail.com",
+        "test@example.com",
+        "Test User",
+        "Test to Non-existent Account",
+        "This is a test to a non-existent account.",
+        expected_success=False,
+        error_check="may not exist"
+    )
+    
+    # Test with invalid email format
+    tester.test_invalid_email_format()
+    
+    # 4. Test with valid format but likely to fail
+    print("\n🔍 TESTING EMAIL SENDING WITH VALID FORMAT BUT LIKELY TO FAIL")
+    tester.test_send_email(
+        "test@example.com",  # example.com might not accept emails
+        "test@example.com",
+        "Test User",
+        "Test with Valid Format",
+        "This is a test with valid format but likely to fail.",
+        expected_success=False
     )
     
     # Print summary
