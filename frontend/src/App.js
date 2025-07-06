@@ -232,6 +232,7 @@ function App() {
           <div className="flex flex-wrap justify-center space-x-2 mb-6">
             {[
               { key: 'send', label: '📤 Send Email', icon: '📤' },
+              { key: 'setup', label: '🏗️ Domain Setup', icon: '🏗️' },
               { key: 'auth', label: '🔐 Auth Check', icon: '🔐' },
               { key: 'mx', label: '🔍 MX Lookup', icon: '🔍' },
               { key: 'received', label: '📥 Received', icon: '📥' },
