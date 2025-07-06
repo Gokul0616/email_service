@@ -18,12 +18,15 @@ import pandas as pd
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import base64
+from bson import ObjectId
+from fastapi.encoders import jsonable_encoder
 
 # Import our custom modules
 from backend.email_auth import EmailAuthenticator
 from backend.smtp_server import smtp_server
 from backend.email_relay import EmailRelay
 from backend.domain_setup_guide import get_domain_setup_guide
+from backend.mongo_encoder import MongoJSONEncoder, custom_jsonable_encoder
 
 # Import new campaign system modules
 from backend.models import *
