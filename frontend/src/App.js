@@ -255,6 +255,138 @@ function App() {
         </div>
 
         <div className="max-w-6xl mx-auto">
+          {/* Domain Setup Tab */}
+          {activeTab === 'setup' && (
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <span className="bg-orange-100 text-orange-600 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-3">
+                  🏗️
+                </span>
+                Domain Setup Guide for pixelrisewebco.com
+              </h2>
+              
+              {domainSetupGuide && (
+                <div className="space-y-6">
+                  {/* Step 1: Domain Registration */}
+                  <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+                    <h3 className="text-lg font-bold text-blue-800 mb-3">
+                      {domainSetupGuide.step_1_domain_registration.title}
+                    </h3>
+                    <p className="text-sm text-blue-700 mb-3">
+                      <strong>Time:</strong> {domainSetupGuide.step_1_domain_registration.estimated_time} | 
+                      <strong> Cost:</strong> {domainSetupGuide.step_1_domain_registration.cost}
+                    </p>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      {domainSetupGuide.step_1_domain_registration.instructions.map((instruction, index) => (
+                        <li key={index}>• {instruction}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  {/* Step 2: DNS Configuration */}
+                  <div className="bg-green-50 border border-green-200 p-6 rounded-lg">
+                    <h3 className="text-lg font-bold text-green-800 mb-3">
+                      {domainSetupGuide.step_2_dns_configuration.title}
+                    </h3>
+                    <p className="text-sm text-green-700 mb-4">
+                      <strong>Time:</strong> {domainSetupGuide.step_2_dns_configuration.estimated_time}
+                    </p>
+                    
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {Object.entries(domainSetupGuide.step_2_dns_configuration.dns_records).map(([recordType, record]) => (
+                        <div key={recordType} className="bg-white p-4 rounded border">
+                          <h4 className="font-bold text-gray-800 mb-2">{recordType} Record</h4>
+                          <div className="text-xs space-y-1">
+                            <p><strong>Name:</strong> {record.name}</p>
+                            <p><strong>Type:</strong> {record.type}</p>
+                            <p><strong>Value:</strong> <span className="font-mono bg-gray-100 p-1 rounded break-all">{record.value}</span></p>
+                            <p className="text-gray-600"><strong>Purpose:</strong> {record.purpose}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Step 3: Email Configuration */}
+                  <div className="bg-purple-50 border border-purple-200 p-6 rounded-lg">
+                    <h3 className="text-lg font-bold text-purple-800 mb-3">
+                      {domainSetupGuide.step_3_email_configuration.title}
+                    </h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-bold text-purple-700 mb-2">Server Settings</h4>
+                        <div className="text-sm text-purple-600 space-y-1">
+                          <p><strong>SMTP Server:</strong> {domainSetupGuide.step_3_email_configuration.server_settings.smtp_server}</p>
+                          <p><strong>Port:</strong> {domainSetupGuide.step_3_email_configuration.server_settings.smtp_port}</p>
+                          <p><strong>Authentication:</strong> {domainSetupGuide.step_3_email_configuration.server_settings.authentication}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-purple-700 mb-2">Available Email Addresses</h4>
+                        <div className="text-sm text-purple-600 space-y-1">
+                          {domainSetupGuide.step_3_email_configuration.email_addresses.map((email, index) => (
+                            <p key={index}>• {email}</p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Production Ready Features */}
+                  <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg">
+                    <h3 className="text-lg font-bold text-gray-800 mb-3">
+                      🚀 Production-Ready Features
+                    </h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-bold text-gray-700 mb-2">Included Features</h4>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          {domainSetupGuide.production_ready_features.included.map((feature, index) => (
+                            <p key={index}>{feature}</p>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-700 mb-2">Ready For</h4>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          {domainSetupGuide.production_ready_features.ready_for.map((use, index) => (
+                            <p key={index}>• {use}</p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Quick Action */}
+                  <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-center">
+                    <h4 className="font-bold text-yellow-800 mb-2">🎯 Next Steps</h4>
+                    <p className="text-sm text-yellow-700 mb-3">
+                      Register pixelrisewebco.com and configure the DNS records above to start sending real emails!
+                    </p>
+                    <div className="space-x-2">
+                      <a 
+                        href="https://www.namecheap.com/domains/registration/results/?domain=pixelrisewebco.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-block bg-yellow-600 text-white px-4 py-2 rounded text-sm hover:bg-yellow-700"
+                      >
+                        Register on Namecheap
+                      </a>
+                      <a 
+                        href="https://www.godaddy.com/domains/searchresults.aspx?checkAvail=1&domainToCheck=pixelrisewebco.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-block bg-yellow-600 text-white px-4 py-2 rounded text-sm hover:bg-yellow-700"
+                      >
+                        Register on GoDaddy
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Send Email Tab */}
           {activeTab === 'send' && (
             <div className="bg-white rounded-lg shadow-lg p-6">
