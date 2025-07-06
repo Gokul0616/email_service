@@ -609,12 +609,16 @@ async def get_campaigns(
             filters["status"] = status
         
         campaigns = db_manager.get_campaigns(filters, limit, offset)
-        return {
-            "campaigns": campaigns,
+        
+        # Use custom encoder to handle ObjectId
+        serialized_campaigns = custom_jsonable_encoder(campaigns)
+        
+        return MongoJSONEncoder(content={
+            "campaigns": serialized_campaigns,
             "total": len(campaigns),
             "limit": limit,
             "offset": offset
-        }
+        })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -625,7 +629,11 @@ async def get_campaign(campaign_id: str):
         campaign = db_manager.get_campaign(campaign_id)
         if not campaign:
             raise HTTPException(status_code=404, detail="Campaign not found")
-        return campaign
+        
+        # Use custom encoder to handle ObjectId
+        serialized_campaign = custom_jsonable_encoder(campaign)
+        
+        return MongoJSONEncoder(content=serialized_campaign)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
