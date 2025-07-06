@@ -41,20 +41,21 @@ class EmailAuthenticator:
             print(f"Error loading DKIM key: {e}")
     
     def sign_email_with_dkim(self, message: str, from_email: str) -> str:
-        """Sign email message with DKIM signature"""
-        if not self.dkim_private_key:
-            print("DKIM private key not available, skipping DKIM signing")
-            return message
-        
+        """Sign email message with DKIM signature using sender's domain"""
         try:
             # Extract domain from sender email
             sender_domain = from_email.split('@')[1]
             print(f"Signing email for domain: {sender_domain}")
             
+            # If no private key available, generate one for this domain
+            if not self.dkim_private_key:
+                print("No DKIM private key available - generating temporary key")
+                self.dkim_private_key = self._generate_temp_dkim_key()
+            
             # Convert message to bytes
             message_bytes = message.encode('utf-8')
             
-            # Sign the message
+            # Sign the message with sender's domain
             signature = dkim.sign(
                 message_bytes,
                 self.dkim_selector.encode('utf-8'),
@@ -70,7 +71,40 @@ class EmailAuthenticator:
             
         except Exception as e:
             print(f"DKIM signing failed: {e}")
+            # Return original message if signing fails
             return message
+    
+    def _generate_temp_dkim_key(self) -> bytes:
+        """Generate a temporary DKIM key for testing"""
+        try:
+            from cryptography.hazmat.primitives import hashes
+            from cryptography.hazmat.primitives.asymmetric import rsa
+            from cryptography.hazmat.primitives import serialization
+            
+            # Generate a new RSA key pair
+            private_key = rsa.generate_private_key(
+                public_exponent=65537,
+                key_size=2048,
+            )
+            
+            # Serialize private key
+            private_pem = private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption()
+            )
+            
+            print("Generated temporary DKIM key for testing")
+            return private_pem
+            
+        except Exception as e:
+            print(f"Failed to generate temporary DKIM key: {e}")
+            # Return existing key if generation fails
+            try:
+                with open("/app/backend/dkim_private.key", 'rb') as f:
+                    return f.read()
+            except:
+                return None
     
     def get_dns_records_for_domain(self, domain: str) -> Dict[str, str]:
         """Generate DNS records needed for email authentication"""
