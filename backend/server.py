@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response, HTMLResponse
 from pydantic import BaseModel
 import os
 import socket
@@ -7,15 +8,28 @@ import ssl
 import dns.resolver
 import uuid
 import re
-from datetime import datetime
-from typing import List, Optional
+from datetime import datetime, timedelta
+from typing import List, Optional, Dict, Any
 import json
+import csv
+import io
+import asyncio
+import pandas as pd
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import base64
 
 # Import our custom modules
 from backend.email_auth import EmailAuthenticator
 from backend.smtp_server import smtp_server
 from backend.email_relay import EmailRelay
 from backend.domain_setup_guide import get_domain_setup_guide
+
+# Import new campaign system modules
+from models import *
+from database import db_manager
+from campaign_service import campaign_service
+from email_personalization import EmailPersonalizer
 
 app = FastAPI()
 
