@@ -26,10 +26,10 @@ from backend.email_relay import EmailRelay
 from backend.domain_setup_guide import get_domain_setup_guide
 
 # Import new campaign system modules
-from models import *
-from database import db_manager
-from campaign_service import campaign_service
-from email_personalization import EmailPersonalizer
+from backend.models import *
+from backend.database import db_manager
+from backend.campaign_service import campaign_service
+from backend.email_personalization import EmailPersonalizer
 
 app = FastAPI()
 
