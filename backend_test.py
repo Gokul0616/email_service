@@ -6,7 +6,7 @@ import random
 import string
 
 class EmailServiceTester:
-    def __init__(self, base_url="https://ced57696-758d-4aaf-b48b-bc02b4052ac4.preview.emergentagent.com"):
+    def __init__(self, base_url="https://822d7476-e617-436c-973c-48dfb3bed99c.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
