@@ -36,32 +36,26 @@ class EmailRelay:
         
     def send_email_via_relay(self, from_email: str, to_email: str, subject: str, 
                            body: str, is_html: bool = False) -> Dict:
-        """Send email using professional relay method"""
+        """Send email using real delivery system (not simulation)"""
         try:
-            # Method 1: Try direct SMTP delivery (most reliable)
-            result = self._try_direct_smtp_delivery(from_email, to_email, subject, body, is_html)
-            if result['success']:
-                return result
+            print(f"🚀 REAL EMAIL DELIVERY: {from_email} -> {to_email}")
             
-            # Method 2: Try authenticated SMTP (with credentials)
-            result = self._try_authenticated_smtp(from_email, to_email, subject, body, is_html)
-            if result['success']:
-                return result
+            # Use real email delivery system
+            result = self.real_delivery.send_real_email(
+                from_email=from_email,
+                to_email=to_email,
+                subject=subject,
+                body=body,
+                is_html=is_html
+            )
             
-            # Method 3: Try relay through our own SMTP server
-            result = self._try_relay_delivery(from_email, to_email, subject, body, is_html)
-            if result['success']:
-                return result
-            
-            # Method 4: Use email service API simulation
-            result = self._simulate_email_service(from_email, to_email, subject, body, is_html)
             return result
             
         except Exception as e:
             return {
                 'success': False,
-                'message': f"All delivery methods failed: {str(e)}",
-                'method': 'none'
+                'message': f"Real email delivery failed: {str(e)}",
+                'method': 'error'
             }
     
     def _try_direct_smtp_delivery(self, from_email: str, to_email: str, subject: str, 
