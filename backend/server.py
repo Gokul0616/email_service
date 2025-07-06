@@ -886,10 +886,14 @@ async def get_templates(category: Optional[str] = Query(None)):
             filters["category"] = category
         
         templates = db_manager.get_templates(filters)
-        return {
-            "templates": templates,
+        
+        # Use custom encoder to handle ObjectId
+        serialized_templates = custom_jsonable_encoder(templates)
+        
+        return MongoJSONEncoder(content={
+            "templates": serialized_templates,
             "total": len(templates)
-        }
+        })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
