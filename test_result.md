@@ -449,6 +449,6 @@ agent_communication:
   - agent: "testing"
     message: "Tested the new authentication features. The Authentication Checker API works correctly for both gmail.com and example.com domains. The improved Email Sending API now provides better error messages with authentication guidance when sending fails due to authentication issues. All other APIs continue to work correctly."
   - agent: "testing"
-    message: "Completed comprehensive testing of the cold email campaign system backend APIs. All APIs are working correctly, including Campaign Management, Contact Management, Template Management, Analytics, and Email Personalization. Fixed MongoDB ObjectId serialization issues to ensure proper JSON responses. The system is fully functional and ready for use."
+    message: "Attempted to test all backend APIs but encountered a critical error with the FastAPI middleware. The error 'ValueError: too many values to unpack (expected 2)' is occurring in the middleware stack. This is likely due to a compatibility issue between FastAPI, Starlette, and other dependencies. The backend service is running but returning 500 errors for all API requests. This requires investigation and fixing by the main agent."
   - agent: "main"
     message: "Starting comprehensive testing of all email campaign system features. User requested testing of all features including email sending from their domain (pixelrisewebco.com). Will test backend APIs first, then frontend functionality."
