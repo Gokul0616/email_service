@@ -346,7 +346,7 @@ async def shutdown_event():
 
 @app.post("/api/send-email", response_model=EmailResponse)
 async def send_email(email: EmailMessage):
-    """Send email using custom SMTP client with authentication"""
+    """Send email using professional email relay system"""
     try:
         # Basic validation
         if not email.to_email or '@' not in email.to_email:
@@ -361,27 +361,26 @@ async def send_email(email: EmailMessage):
                 message="Invalid sender email address format"
             )
         
-        # Extract sender domain for authentication check
-        sender_domain = email.from_email.split('@')[1]
+        # Use the professional email relay system
+        result = email_relay.send_email_via_relay(
+            from_email=email.from_email,
+            to_email=email.to_email,
+            subject=email.subject,
+            body=email.body,
+            is_html=email.is_html
+        )
         
-        # Check if sender domain is properly configured for email authentication
-        auth_warning = ""
-        if sender_domain in ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com']:
-            auth_warning = " Note: You cannot send emails FROM major email providers (Gmail, Yahoo, etc.) without their SMTP servers. Use your own domain for the 'from' address."
-        
-        # Send email with authentication
-        result = smtp_client.send_email(email)
-        
-        # Add authentication guidance to error messages
-        if not result.success and "authentication" in result.message.lower():
-            result.message += f"{auth_warning} To fix authentication issues, you need to: 1) Use your own domain, 2) Set up DNS records (SPF, DKIM, DMARC), 3) Configure domain verification."
-        
-        return result
+        # Convert relay result to EmailResponse
+        return EmailResponse(
+            success=result['success'],
+            message=result['message'],
+            message_id=result.get('message_id') or result.get('relay_id', str(uuid.uuid4()))
+        )
     
     except Exception as e:
         return EmailResponse(
             success=False,
-            message=f"Unexpected error: {str(e)}"
+            message=f"Email service error: {str(e)}"
         )
 
 @app.get("/api/test-mx/{domain}")
