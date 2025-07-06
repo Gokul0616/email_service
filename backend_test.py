@@ -7,6 +7,7 @@ import string
 import csv
 import io
 from datetime import datetime, timedelta
+import uuid
 
 class EmailServiceTester:
     def __init__(self, base_url="https://4b5c7461-d5f7-4e38-b7c8-06e9cec90cb8.preview.emergentagent.com"):
@@ -431,6 +432,50 @@ class EmailServiceTester:
                 return False
         return False
     
+    def test_update_campaign(self, campaign_id):
+        """Test updating a campaign"""
+        data = {
+            "name": f"Updated Campaign {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            "subject": "Updated Subject Line"
+        }
+        
+        success, response = self.run_test(
+            f"Update Campaign {campaign_id}",
+            "PUT",
+            f"/api/campaigns/{campaign_id}",
+            200,
+            data=data
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success"):
+                print(f"✅ Campaign {campaign_id} updated successfully")
+                return True
+            else:
+                print(f"❌ Campaign update failed: {data.get('message', 'No error message')}")
+                return False
+        return False
+    
+    def test_delete_campaign(self, campaign_id):
+        """Test deleting a campaign"""
+        success, response = self.run_test(
+            f"Delete Campaign {campaign_id}",
+            "DELETE",
+            f"/api/campaigns/{campaign_id}",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success"):
+                print(f"✅ Campaign {campaign_id} deleted successfully")
+                return True
+            else:
+                print(f"❌ Campaign deletion failed: {data.get('message', 'No error message')}")
+                return False
+        return False
+    
     def test_prepare_campaign(self, campaign_id):
         """Test preparing a campaign for sending"""
         success, response = self.run_test(
@@ -466,6 +511,110 @@ class EmailServiceTester:
                 return True
             else:
                 print(f"❌ Campaign sending failed: {data.get('message', 'No error message')}")
+                return False
+        return False
+    
+    def test_campaign_stats(self, campaign_id):
+        """Test getting campaign statistics"""
+        success, response = self.run_test(
+            f"Get Campaign Stats {campaign_id}",
+            "GET",
+            f"/api/campaigns/{campaign_id}/stats",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success") and "data" in data:
+                stats = data["data"]
+                print(f"✅ Retrieved campaign statistics for {campaign_id}")
+                print(f"  - Total Recipients: {stats.get('total_recipients', 0)}")
+                print(f"  - Sent: {stats.get('sent_count', 0)}")
+                print(f"  - Opened: {stats.get('opened_count', 0)}")
+                print(f"  - Clicked: {stats.get('clicked_count', 0)}")
+                return True
+            else:
+                print("❌ Campaign stats response format incorrect")
+                return False
+        return False
+    
+    def test_campaign_emails(self, campaign_id):
+        """Test getting campaign emails"""
+        success, response = self.run_test(
+            f"Get Campaign Emails {campaign_id}",
+            "GET",
+            f"/api/campaigns/{campaign_id}/emails",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "emails" in data and "total" in data:
+                print(f"✅ Retrieved {data['total']} emails for campaign {campaign_id}")
+                return True
+            else:
+                print("❌ Campaign emails response format incorrect")
+                return False
+        return False
+    
+    def test_schedule_campaign(self, campaign_id):
+        """Test scheduling a campaign"""
+        # Schedule for 1 day in the future
+        scheduled_time = (datetime.now() + timedelta(days=1)).isoformat()
+        
+        success, response = self.run_test(
+            f"Schedule Campaign {campaign_id}",
+            "POST",
+            f"/api/campaigns/{campaign_id}/schedule",
+            200,
+            data={"scheduled_time": scheduled_time}
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success"):
+                print(f"✅ Campaign {campaign_id} scheduled successfully")
+                return True
+            else:
+                print(f"❌ Campaign scheduling failed: {data.get('message', 'No error message')}")
+                return False
+        return False
+    
+    def test_pause_campaign(self, campaign_id):
+        """Test pausing a campaign"""
+        success, response = self.run_test(
+            f"Pause Campaign {campaign_id}",
+            "POST",
+            f"/api/campaigns/{campaign_id}/pause",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success"):
+                print(f"✅ Campaign {campaign_id} paused successfully")
+                return True
+            else:
+                print(f"❌ Campaign pausing failed: {data.get('message', 'No error message')}")
+                return False
+        return False
+    
+    def test_resume_campaign(self, campaign_id):
+        """Test resuming a campaign"""
+        success, response = self.run_test(
+            f"Resume Campaign {campaign_id}",
+            "POST",
+            f"/api/campaigns/{campaign_id}/resume",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success"):
+                print(f"✅ Campaign {campaign_id} resumed successfully")
+                return True
+            else:
+                print(f"❌ Campaign resuming failed: {data.get('message', 'No error message')}")
                 return False
         return False
     
@@ -518,6 +667,69 @@ class EmailServiceTester:
                 return False
         return False
     
+    def test_get_contact(self, contact_id):
+        """Test getting a specific contact"""
+        success, response = self.run_test(
+            f"Get Contact {contact_id}",
+            "GET",
+            f"/api/contacts/{contact_id}",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "id" in data and data["id"] == contact_id:
+                print(f"✅ Retrieved contact {contact_id}")
+                return True
+            else:
+                print("❌ Contact retrieval response format incorrect")
+                return False
+        return False
+    
+    def test_update_contact(self, contact_id):
+        """Test updating a contact"""
+        data = {
+            "first_name": f"Updated {datetime.now().strftime('%H:%M:%S')}",
+            "tags": ["updated", "test"]
+        }
+        
+        success, response = self.run_test(
+            f"Update Contact {contact_id}",
+            "PUT",
+            f"/api/contacts/{contact_id}",
+            200,
+            data=data
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success"):
+                print(f"✅ Contact {contact_id} updated successfully")
+                return True
+            else:
+                print(f"❌ Contact update failed: {data.get('message', 'No error message')}")
+                return False
+        return False
+    
+    def test_delete_contact(self, contact_id):
+        """Test deleting a contact"""
+        success, response = self.run_test(
+            f"Delete Contact {contact_id}",
+            "DELETE",
+            f"/api/contacts/{contact_id}",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success"):
+                print(f"✅ Contact {contact_id} deleted successfully")
+                return True
+            else:
+                print(f"❌ Contact deletion failed: {data.get('message', 'No error message')}")
+                return False
+        return False
+    
     def test_bulk_import_contacts(self):
         """Test bulk importing contacts from CSV"""
         # Create a sample CSV file
@@ -550,6 +762,30 @@ class EmailServiceTester:
                 return True
             else:
                 print("❌ Bulk import response format incorrect")
+                return False
+        return False
+    
+    def test_export_contacts(self, format="csv"):
+        """Test exporting contacts"""
+        success, response = self.run_test(
+            f"Export Contacts ({format})",
+            "GET",
+            f"/api/contacts/export?format={format}",
+            200
+        )
+        
+        if success:
+            content_type = response.headers.get('Content-Type', '')
+            content_disposition = response.headers.get('Content-Disposition', '')
+            
+            if format == "csv" and "text/csv" in content_type:
+                print(f"✅ Exported contacts to CSV successfully")
+                return True
+            elif format == "excel" and "spreadsheetml" in content_type:
+                print(f"✅ Exported contacts to Excel successfully")
+                return True
+            else:
+                print(f"❌ Contact export format incorrect: {content_type}")
                 return False
         return False
     
@@ -599,6 +835,69 @@ class EmailServiceTester:
                 return True
             else:
                 print("❌ Template list response format incorrect")
+                return False
+        return False
+    
+    def test_get_template(self, template_id):
+        """Test getting a specific template"""
+        success, response = self.run_test(
+            f"Get Template {template_id}",
+            "GET",
+            f"/api/templates/{template_id}",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "id" in data and data["id"] == template_id:
+                print(f"✅ Retrieved template {template_id}")
+                return True
+            else:
+                print("❌ Template retrieval response format incorrect")
+                return False
+        return False
+    
+    def test_update_template(self, template_id):
+        """Test updating a template"""
+        data = {
+            "name": f"Updated Template {datetime.now().strftime('%H:%M:%S')}",
+            "subject": "Updated Subject Line"
+        }
+        
+        success, response = self.run_test(
+            f"Update Template {template_id}",
+            "PUT",
+            f"/api/templates/{template_id}",
+            200,
+            data=data
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success"):
+                print(f"✅ Template {template_id} updated successfully")
+                return True
+            else:
+                print(f"❌ Template update failed: {data.get('message', 'No error message')}")
+                return False
+        return False
+    
+    def test_delete_template(self, template_id):
+        """Test deleting a template"""
+        success, response = self.run_test(
+            f"Delete Template {template_id}",
+            "DELETE",
+            f"/api/templates/{template_id}",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success"):
+                print(f"✅ Template {template_id} deleted successfully")
+                return True
+            else:
+                print(f"❌ Template deletion failed: {data.get('message', 'No error message')}")
                 return False
         return False
     
@@ -673,13 +972,12 @@ class EmailServiceTester:
     # Email Personalization API Tests
     def test_validate_personalization(self, content):
         """Test validating content for personalization"""
-        data = content  # Send content directly as the request body
-        
         success, response = self.run_test(
             "Validate Personalization",
             "POST",
-            "/api/personalization/validate?content=" + content,
-            200
+            "/api/personalization/validate",
+            200,
+            data={"content": content}
         )
         
         if success:
@@ -699,8 +997,9 @@ class EmailServiceTester:
         success, response = self.run_test(
             "Preview Personalization",
             "POST",
-            "/api/personalization/preview?content=" + content,
-            200
+            "/api/personalization/preview",
+            200,
+            data={"content": content}
         )
         
         if success:
@@ -712,6 +1011,95 @@ class EmailServiceTester:
                 return True
             else:
                 print("❌ Personalization preview response format incorrect")
+                return False
+        return False
+    
+    # Tracking API Tests
+    def test_track_email_open(self):
+        """Test email open tracking"""
+        tracking_id = str(uuid.uuid4())
+        success, response = self.run_test(
+            "Track Email Open",
+            "GET",
+            f"/api/track/open/{tracking_id}",
+            200
+        )
+        
+        # This endpoint returns a 1x1 pixel image, so we just check if the response is successful
+        if success:
+            content_type = response.headers.get('Content-Type', '')
+            if "image/png" in content_type:
+                print(f"✅ Email open tracking successful")
+                return True
+            else:
+                print(f"❌ Email open tracking response format incorrect: {content_type}")
+                return False
+        return False
+    
+    def test_track_email_click(self):
+        """Test email click tracking"""
+        tracking_id = str(uuid.uuid4())
+        url = "https://example.com"
+        success, response = self.run_test(
+            "Track Email Click",
+            "GET",
+            f"/api/track/click/{tracking_id}?url={url}",
+            302  # Expecting a redirect
+        )
+        
+        if success:
+            location = response.headers.get('Location', '')
+            if url in location:
+                print(f"✅ Email click tracking successful with redirect to {location}")
+                return True
+            else:
+                print(f"❌ Email click tracking redirect incorrect: {location}")
+                return False
+        return False
+    
+    def test_unsubscribe(self):
+        """Test unsubscribe functionality"""
+        email = f"test-{uuid.uuid4()}@example.com"
+        data = {
+            "email": email,
+            "reason": "Test unsubscribe"
+        }
+        
+        success, response = self.run_test(
+            "Unsubscribe Email",
+            "POST",
+            "/api/unsubscribe",
+            200,
+            data=data
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success"):
+                print(f"✅ Unsubscribe successful for {email}")
+                return True
+            else:
+                print(f"❌ Unsubscribe failed: {data.get('message', 'No error message')}")
+                return False
+        return False
+    
+    def test_unsubscribe_page(self):
+        """Test unsubscribe page"""
+        email = f"test-{uuid.uuid4()}@example.com"
+        success, response = self.run_test(
+            "Unsubscribe Page",
+            "GET",
+            f"/api/unsubscribe/{email}",
+            200
+        )
+        
+        if success:
+            content_type = response.headers.get('Content-Type', '')
+            if "text/html" in content_type and email in response.text:
+                print(f"✅ Unsubscribe page loaded successfully for {email}")
+                return True
+            else:
+                print(f"❌ Unsubscribe page format incorrect")
                 return False
         return False
 
@@ -738,13 +1126,18 @@ def main():
     
     tester = EmailServiceTester()
     
-    # 1. Test health endpoint
-    print("\n🔍 TESTING HEALTH ENDPOINT")
+    # 1. Test Core Email APIs
+    print("\n🔍 TESTING CORE EMAIL APIS")
+    
+    # Health Check API
     health_check_result = tester.test_health_endpoint()
     
-    # 2. Test legacy APIs for compatibility
-    print("\n🔍 TESTING LEGACY EMAIL APIS")
+    # MX Record Lookup API
     mx_lookup_gmail = tester.test_mx_lookup("gmail.com")
+    mx_lookup_yahoo = tester.test_mx_lookup("yahoo.com")
+    mx_lookup_nonexistent = tester.test_mx_lookup_nonexistent(f"nonexistent-{uuid.uuid4()}.com")
+    
+    # Email Sending API
     email_send_test = tester.test_send_email(
         "test@example.com",
         "test@pixelrisewebco.com",
@@ -754,71 +1147,17 @@ def main():
         expected_success=False
     )
     
-    # 3. Test Authentication & DNS APIs
-    print("\n🔍 TESTING AUTHENTICATION & DNS APIS")
-    auth_check = tester.test_auth_check("pixelrisewebco.com")
+    # Invalid Email Format Test
+    invalid_email_test = tester.test_invalid_email_format()
+    
+    # Authentication Checker API
+    auth_check_gmail = tester.test_auth_check("gmail.com")
+    auth_check_pixelrise = tester.test_auth_check("pixelrisewebco.com")
+    
+    # DNS Records API
     dns_records = tester.test_dns_records("pixelrisewebco.com")
     
-    # 4. Test Contact Management APIs
-    print("\n🔍 TESTING CONTACT MANAGEMENT APIS")
-    
-    # Create individual contacts
-    contact1_success, contact1_id = tester.test_create_contact(
-        "john.doe@example.com",
-        "John",
-        "Doe",
-        "Example Corp"
-    )
-    
-    contact2_success, contact2_id = tester.test_create_contact(
-        "jane.smith@example.com",
-        "Jane",
-        "Smith",
-        "Test Inc"
-    )
-    
-    # List contacts
-    list_contacts = tester.test_list_contacts()
-    
-    # Bulk import contacts
-    bulk_import = tester.test_bulk_import_contacts()
-    
-    # 5. Test Template Management APIs
-    print("\n🔍 TESTING TEMPLATE MANAGEMENT APIS")
-    
-    # Create template with personalization variables
-    template_html = """
-    <html>
-    <body>
-        <h1>Hello {{first_name}},</h1>
-        <p>We noticed that {{company}} might be interested in our services.</p>
-        <p>Would you be available for a quick call this week?</p>
-        <p>Best regards,<br>Sales Team</p>
-    </body>
-    </html>
-    """
-    
-    template_success, template_id = tester.test_create_template(
-        "Sales Outreach Template",
-        "{{first_name}}, let's connect",
-        template_html
-    )
-    
-    # List templates
-    list_templates = tester.test_list_templates()
-    
-    # Preview template
-    if template_success:
-        preview_template = tester.test_preview_template(template_id)
-    
-    # 6. Test Email Personalization APIs
-    print("\n🔍 TESTING EMAIL PERSONALIZATION APIS")
-    
-    personalization_content = "Hello {{first_name}} from {{company}}, this is a test email."
-    validate_personalization = tester.test_validate_personalization(personalization_content)
-    preview_personalization = tester.test_preview_personalization(personalization_content)
-    
-    # 7. Test Campaign Management APIs
+    # 2. Test Campaign Management APIs
     print("\n🔍 TESTING CAMPAIGN MANAGEMENT APIS")
     
     # Create campaign
@@ -848,32 +1187,160 @@ def main():
     if campaign_success:
         get_campaign = tester.test_get_campaign(campaign_id)
         
+        # Update campaign
+        update_campaign = tester.test_update_campaign(campaign_id)
+        
         # Prepare campaign
         prepare_campaign = tester.test_prepare_campaign(campaign_id)
         
+        # Campaign stats
+        campaign_stats = tester.test_campaign_stats(campaign_id)
+        
+        # Campaign emails
+        campaign_emails = tester.test_campaign_emails(campaign_id)
+        
+        # Schedule campaign
+        schedule_campaign = tester.test_schedule_campaign(campaign_id)
+        
+        # Pause campaign
+        pause_campaign = tester.test_pause_campaign(campaign_id)
+        
+        # Resume campaign
+        resume_campaign = tester.test_resume_campaign(campaign_id)
+        
         # Send campaign
-        if prepare_campaign:
-            send_campaign = tester.test_send_campaign(campaign_id)
+        send_campaign = tester.test_send_campaign(campaign_id)
+        
+        # Create another campaign for deletion test
+        delete_campaign_success, delete_campaign_id = tester.test_create_campaign(
+            "Campaign to Delete",
+            "This campaign will be deleted",
+            "<p>This is a test campaign that will be deleted.</p>",
+            "test@pixelrisewebco.com",
+            "Test User"
+        )
+        
+        if delete_campaign_success:
+            # Delete campaign
+            delete_campaign = tester.test_delete_campaign(delete_campaign_id)
     
-    # 8. Test Analytics APIs
+    # 3. Test Contact Management APIs
+    print("\n🔍 TESTING CONTACT MANAGEMENT APIS")
+    
+    # Create individual contacts
+    contact1_success, contact1_id = tester.test_create_contact(
+        f"john.doe.{uuid.uuid4()}@example.com",
+        "John",
+        "Doe",
+        "Example Corp"
+    )
+    
+    contact2_success, contact2_id = tester.test_create_contact(
+        f"jane.smith.{uuid.uuid4()}@example.com",
+        "Jane",
+        "Smith",
+        "Test Inc"
+    )
+    
+    # List contacts
+    list_contacts = tester.test_list_contacts()
+    
+    # Get specific contact
+    if contact1_success:
+        get_contact = tester.test_get_contact(contact1_id)
+        
+        # Update contact
+        update_contact = tester.test_update_contact(contact1_id)
+    
+    # Bulk import contacts
+    bulk_import = tester.test_bulk_import_contacts()
+    
+    # Export contacts
+    export_contacts_csv = tester.test_export_contacts("csv")
+    export_contacts_excel = tester.test_export_contacts("excel")
+    
+    # Delete contact
+    if contact2_success:
+        delete_contact = tester.test_delete_contact(contact2_id)
+    
+    # 4. Test Template Management APIs
+    print("\n🔍 TESTING TEMPLATE MANAGEMENT APIS")
+    
+    # Create template with personalization variables
+    template_html = """
+    <html>
+    <body>
+        <h1>Hello {{first_name}},</h1>
+        <p>We noticed that {{company}} might be interested in our services.</p>
+        <p>Would you be available for a quick call this week?</p>
+        <p>Best regards,<br>Sales Team</p>
+    </body>
+    </html>
+    """
+    
+    template_success, template_id = tester.test_create_template(
+        "Sales Outreach Template",
+        "{{first_name}}, let's connect",
+        template_html
+    )
+    
+    # List templates
+    list_templates = tester.test_list_templates()
+    
+    # Get specific template
+    if template_success:
+        get_template = tester.test_get_template(template_id)
+        
+        # Update template
+        update_template = tester.test_update_template(template_id)
+        
+        # Preview template
+        preview_template = tester.test_preview_template(template_id)
+        
+        # Create another template for deletion test
+        delete_template_success, delete_template_id = tester.test_create_template(
+            "Template to Delete",
+            "This template will be deleted",
+            "<p>This is a test template that will be deleted.</p>"
+        )
+        
+        if delete_template_success:
+            # Delete template
+            delete_template = tester.test_delete_template(delete_template_id)
+    
+    # 5. Test Analytics APIs
     print("\n🔍 TESTING ANALYTICS APIS")
     
     dashboard_analytics = tester.test_dashboard_analytics()
     campaign_analytics = tester.test_campaign_analytics()
+    
+    # 6. Test Email Personalization APIs
+    print("\n🔍 TESTING EMAIL PERSONALIZATION APIS")
+    
+    personalization_content = "Hello {{first_name}} from {{company}}, this is a test email."
+    validate_personalization = tester.test_validate_personalization(personalization_content)
+    preview_personalization = tester.test_preview_personalization(personalization_content)
+    
+    # 7. Test Tracking APIs
+    print("\n🔍 TESTING TRACKING APIS")
+    
+    track_open = tester.test_track_email_open()
+    track_click = tester.test_track_email_click()
+    unsubscribe = tester.test_unsubscribe()
+    unsubscribe_page = tester.test_unsubscribe_page()
     
     # Print summary
     success = tester.print_summary()
     
     # Return results for each API category
     results = {
-        "health_check": health_check_result,
-        "legacy_apis": all([mx_lookup_gmail, email_send_test]),
-        "auth_dns_apis": all([auth_check, dns_records]),
-        "contact_management": all([contact1_success, contact2_success, list_contacts, bulk_import]),
-        "template_management": all([template_success, list_templates]),
+        "core_email_apis": all([health_check_result, mx_lookup_gmail, mx_lookup_yahoo, email_send_test, invalid_email_test, auth_check_gmail, auth_check_pixelrise, dns_records]),
+        "campaign_management": all([campaign_success, list_campaigns, get_campaign, update_campaign, prepare_campaign, campaign_stats, campaign_emails]),
+        "contact_management": all([contact1_success, contact2_success, list_contacts, get_contact, update_contact, bulk_import, export_contacts_csv]),
+        "template_management": all([template_success, list_templates, get_template, update_template, preview_template]),
+        "analytics": all([dashboard_analytics, campaign_analytics]),
         "email_personalization": all([validate_personalization, preview_personalization]),
-        "campaign_management": campaign_success and list_campaigns,
-        "analytics": all([dashboard_analytics, campaign_analytics])
+        "tracking": all([track_open, track_click, unsubscribe, unsubscribe_page])
     }
     
     print("\n" + "="*50)
