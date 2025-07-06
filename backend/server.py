@@ -526,18 +526,29 @@ async def check_domain_authentication(domain: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/delivery-status/{message_id}")
+async def get_delivery_status(message_id: str):
+    """Get delivery status for a sent email"""
+    try:
+        status = email_relay.get_delivery_status(message_id)
+        return status
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy", 
-        "service": "custom-email-server",
+        "service": "professional-email-service",
         "features": [
-            "Raw Socket SMTP Client",
+            "Professional Email Relay",
+            "Multi-Method Delivery", 
             "DKIM Authentication", 
             "SMTP Server",
             "DNS MX Resolution",
-            "Multi-user Mailboxes"
+            "Delivery Status Tracking",
+            "Gmail/Yahoo Compatible"
         ]
     }
 
