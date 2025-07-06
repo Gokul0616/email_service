@@ -2,12 +2,12 @@ import asyncio
 import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
-from models import (
+from backend.models import (
     Campaign, CampaignEmail, Contact, EmailAnalytics, 
     CampaignStatus, EmailStatus, ContactStatus
 )
-from database import db_manager
-from email_personalization import EmailPersonalizer
+from backend.database import db_manager
+from backend.email_personalization import EmailPersonalizer
 from email_validator import validate_email, EmailNotValidError
 import re
 import random
