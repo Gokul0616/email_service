@@ -20,7 +20,8 @@ function App() {
   const [dnsRecords, setDnsRecords] = useState(null);
   const [dnsTestDomain, setDnsTestDomain] = useState('');
   const [authCheckResult, setAuthCheckResult] = useState(null);
-  const [authCheckDomain, setAuthCheckDomain] = useState('');
+  const [authCheckDomain, setAuthCheckDomain] = useState('pixelrisewebco.com');
+  const [domainSetupGuide, setDomainSetupGuide] = useState(null);
   const [activeTab, setActiveTab] = useState('send');
   
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
