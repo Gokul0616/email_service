@@ -124,14 +124,14 @@ class EmailAuthenticator:
         except:
             server_ip = "YOUR_SERVER_IP"
         
-        # SPF Record
-        spf_record = f"v=spf1 ip4:{server_ip} include:_spf.google.com -all"
+        # SPF Record - Include your server IP and common email services
+        spf_record = f"v=spf1 ip4:{server_ip} include:_spf.google.com include:mailgun.org include:_spf.mailjet.com -all"
         
-        # DKIM Record (load public key)
-        dkim_record = "v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7EiQX80du//njh2q3A48KVa3zaTuyQoQhHjsTbWQadYVDDoDFjcWgadx2FEDn97eYXgNAuFGYwLpk40TxsrOXwijMzu0q70BEjhxCU7eaCO67BP4sz1O7u4v0nANDuw3RVvOyCOt0BbXh+zv3wtl7SF3mlVnzgbvm8YJrbnIrd9ZU2VvIdMgEt7+cXUZHu+cBT9u5T7iyrJEHU0qfktfoXVkApKJOONs/DW11HMXg9ALj8871+Sgmv63Z0kZnZCzENu6hMa1/9+nsApVJvpS04uFDwQQZRwMEMAFLBBnf9wXP2oBLgLA/0k4BV1HwgF7Qy+1tPvCxgFGYcE21XIlIwIDAQAB"
+        # DKIM Record - Load the actual public key we generated
+        dkim_record = self._get_dkim_public_key_record(domain)
         
-        # DMARC Record
-        dmarc_record = f"v=DMARC1; p=quarantine; rua=mailto:dmarc@{domain}; ruf=mailto:dmarc@{domain}; fo=1"
+        # DMARC Record - Production-ready policy
+        dmarc_record = f"v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@{domain}; ruf=mailto:dmarc-failures@{domain}; fo=1; adkim=r; aspf=r"
         
         return {
             'spf': {
@@ -150,6 +150,34 @@ class EmailAuthenticator:
                 'value': dmarc_record
             }
         }
+    
+    def _get_dkim_public_key_record(self, domain: str) -> str:
+        """Get DKIM public key record for domain"""
+        try:
+            # Try to load the actual generated public key
+            domain_key_path = f"/app/backend/dkim_public_{domain.replace('.', '_')}.key"
+            if os.path.exists(domain_key_path):
+                with open(domain_key_path, 'rb') as f:
+                    public_key_pem = f.read()
+                
+                # Convert PEM to DKIM format
+                from cryptography.hazmat.primitives import serialization
+                import base64
+                
+                public_key = serialization.load_pem_public_key(public_key_pem)
+                public_key_der = public_key.public_bytes(
+                    encoding=serialization.Encoding.DER,
+                    format=serialization.PublicFormat.SubjectPublicKeyInfo
+                )
+                public_key_b64 = base64.b64encode(public_key_der).decode('ascii')
+                
+                return f"v=DKIM1; k=rsa; p={public_key_b64}"
+            
+        except Exception as e:
+            print(f"Error loading DKIM public key: {e}")
+        
+        # Fallback to default record
+        return "v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv4Ot69Tpf34KzPIGAp7h3yo8zFH3vetICe/O81pJkW9FA3VyqNy5fgzXvIrmSkUfBvW3qkdYqmUMPeoucXei+QvZQprQPvfZEPuRs1sjdAPRx/G3obTiQZGfxLt0aanz2b6jQ5s0p5ULx0xSL3OU4YIw65G41fa7vT09TXxGjyosdy87RTLBMe49Sxi4C72eYoLvT9TaVNl1TtguND3nLZtiRfG0N61W8u/wZ9vLWhQ8sSxYI+OmwTDUQWtP72zVBfhpimsAx1jGcf+t566qO7NYF97DPk0jOTUOlKnvTlfL810TLjtCN8Zwf29enFMRHT9k3OVnbhknI+S6K0NPfwIDAQAB"
     
     def build_authenticated_message(self, from_email: str, to_email: str, 
                                   subject: str, body: str, message_id: str,
