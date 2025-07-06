@@ -740,85 +740,9 @@ def generate_random_string(length=10):
     """Generate a random string for testing"""
     return ''.join(random.choice(string.ascii_lowercase) for _ in range(length))
 
-def test_auth_check(self, domain):
-        """Test domain authentication status check"""
-        success, response = self.run_test(
-            f"Authentication Check for {domain}",
-            "GET",
-            f"/api/auth-check/{domain}",
-            200
-        )
-        
-        if success:
-            data = response.json()
-            if "domain" in data and "authentication_status" in data and "existing_records" in data:
-                print(f"✅ Retrieved authentication status for domain {domain}")
-                auth_status = data["authentication_status"]
-                print(f"  - SPF Configured: {auth_status.get('spf_configured', False)}")
-                print(f"  - DKIM Configured: {auth_status.get('dkim_configured', False)}")
-                print(f"  - DMARC Configured: {auth_status.get('dmarc_configured', False)}")
-                print(f"  - Fully Authenticated: {auth_status.get('fully_authenticated', False)}")
-                
-                if "setup_required" in data and isinstance(data["setup_required"], list):
-                    print(f"  - Setup Required: {', '.join(data['setup_required'])}")
-                
-                return True
-            else:
-                print("❌ Authentication check response format incorrect")
-                return False
-        return False
-
-def test_send_email_to_real_address(self, to_email, from_email, from_name, subject, body, expected_success=False):
-        """Test sending an email to a real address"""
-        print(f"\n🔍 Testing email sending to real address: {to_email}")
-        print(f"  - From: {from_email}")
-        
-        data = {
-            "to_email": to_email,
-            "from_email": from_email,
-            "from_name": from_name,
-            "subject": subject,
-            "body": body,
-            "is_html": False
-        }
-        
-        success, response = self.run_test(
-            f"Send Email to Real Address {to_email}",
-            "POST",
-            "/api/send-email",
-            200,
-            data=data
-        )
-        
-        if not success:
-            return False
-            
-        response_data = response.json()
-        
-        # Check for authentication warnings in the response
-        if not response_data.get("success"):
-            error_message = response_data.get("message", "")
-            print(f"  - Error Message: {error_message}")
-            
-            # Check for improved error messaging
-            auth_keywords = ["authentication", "spf", "dkim", "dmarc", "dns"]
-            has_auth_guidance = any(keyword in error_message.lower() for keyword in auth_keywords)
-            
-            if has_auth_guidance:
-                print("✅ Response includes authentication guidance")
-            else:
-                print("❌ Response missing authentication guidance")
-            
-            # This is expected to fail, so return True if we got a proper error message
-            return len(error_message) > 0
-        else:
-            # If it succeeded (unlikely), that's fine too
-            print(f"✅ Email sent successfully with message ID: {response_data.get('message_id', 'unknown')}")
-            return True
-
 def main():
     print("="*50)
-    print("🧪 CUSTOM EMAIL SERVICE API TESTING")
+    print("🧪 COLD EMAIL CAMPAIGN SYSTEM API TESTING")
     print("="*50)
     
     tester = EmailServiceTester()
@@ -827,81 +751,124 @@ def main():
     print("\n🔍 TESTING HEALTH ENDPOINT")
     health_check_result = tester.test_health_endpoint()
     
-    # 2. Test MX record lookup for multiple domains
-    print("\n🔍 TESTING MX RECORD LOOKUP")
+    # 2. Test legacy APIs for compatibility
+    print("\n🔍 TESTING LEGACY EMAIL APIS")
     mx_lookup_gmail = tester.test_mx_lookup("gmail.com")
-    mx_lookup_yahoo = tester.test_mx_lookup("yahoo.com")
-    mx_lookup_nonexistent = tester.test_mx_lookup_nonexistent(f"{generate_random_string()}.invalid")
-    
-    # 3. Test the new authentication checker API
-    print("\n🔍 TESTING AUTHENTICATION CHECKER API")
-    auth_check_gmail = tester.test_auth_check("gmail.com")
-    auth_check_example = tester.test_auth_check("example.com")
-    
-    # 4. Test sending email with various scenarios
-    print("\n🔍 TESTING EMAIL SENDING")
-    
-    # Test with non-existent account
-    email_send_nonexistent = tester.test_send_email(
-        "test@gmail.com",
+    email_send_test = tester.test_send_email(
         "test@example.com",
+        "test@pixelrisewebco.com",
         "Test User",
-        "Test to Non-existent Account",
-        "This is a test to a non-existent account.",
-        expected_success=False,
-        error_check="may not exist"
-    )
-    
-    # Test with invalid email format
-    invalid_email_format = tester.test_invalid_email_format()
-    
-    # Test with valid format but likely to fail
-    email_send_valid_format = tester.test_send_email(
-        "test@example.com",  # example.com might not accept emails
-        "test@example.com",
-        "Test User",
-        "Test with Valid Format",
-        "This is a test with valid format but likely to fail.",
+        "Test Email",
+        "This is a test email from the cold email campaign system.",
         expected_success=False
     )
     
-    # 5. Test sending to a real Gmail address with different from addresses
-    print("\n🔍 TESTING EMAIL SENDING TO REAL GMAIL ADDRESS")
+    # 3. Test Authentication & DNS APIs
+    print("\n🔍 TESTING AUTHENTICATION & DNS APIS")
+    auth_check = tester.test_auth_check("pixelrisewebco.com")
+    dns_records = tester.test_dns_records("pixelrisewebco.com")
     
-    # Test with Gmail as sender (should fail with authentication warning)
-    email_to_real_from_gmail = tester.test_send_email_to_real_address(
-        "gokul.363you@gmail.com",
-        "test@gmail.com",
-        "Test Gmail Sender",
-        "Test Email from Custom Email Service System",
-        "This is a test email sent from our custom-built email service system. The system includes raw socket SMTP implementation, DKIM authentication, and comprehensive email handling capabilities."
+    # 4. Test Contact Management APIs
+    print("\n🔍 TESTING CONTACT MANAGEMENT APIS")
+    
+    # Create individual contacts
+    contact1_success, contact1_id = tester.test_create_contact(
+        "john.doe@example.com",
+        "John",
+        "Doe",
+        "Example Corp"
     )
     
-    # Test with generic domain as sender
-    email_to_real_from_generic = tester.test_send_email_to_real_address(
-        "gokul.363you@gmail.com",
-        "test@example.com",
-        "Test Generic Sender",
-        "Test Email from Custom Email Service System",
-        "This is a test email sent from our custom-built email service system. The system includes raw socket SMTP implementation, DKIM authentication, and comprehensive email handling capabilities."
+    contact2_success, contact2_id = tester.test_create_contact(
+        "jane.smith@example.com",
+        "Jane",
+        "Smith",
+        "Test Inc"
     )
     
-    # 6. Test received emails API
-    print("\n🔍 TESTING RECEIVED EMAILS API")
-    received_emails = tester.test_received_emails()
+    # List contacts
+    list_contacts = tester.test_list_contacts()
     
-    # 7. Test user emails API
-    print("\n🔍 TESTING USER EMAILS API")
-    user_emails = tester.test_user_emails("test@example.com")
-    user_emails_sent = tester.test_user_emails("test@example.com", "sent")
+    # Bulk import contacts
+    bulk_import = tester.test_bulk_import_contacts()
     
-    # 8. Test server status API
-    print("\n🔍 TESTING SERVER STATUS API")
-    server_status = tester.test_server_status()
+    # 5. Test Template Management APIs
+    print("\n🔍 TESTING TEMPLATE MANAGEMENT APIS")
     
-    # 9. Test DNS records API
-    print("\n🔍 TESTING DNS RECORDS API")
-    dns_records = tester.test_dns_records("example.com")
+    # Create template with personalization variables
+    template_html = """
+    <html>
+    <body>
+        <h1>Hello {{first_name}},</h1>
+        <p>We noticed that {{company}} might be interested in our services.</p>
+        <p>Would you be available for a quick call this week?</p>
+        <p>Best regards,<br>Sales Team</p>
+    </body>
+    </html>
+    """
+    
+    template_success, template_id = tester.test_create_template(
+        "Sales Outreach Template",
+        "{{first_name}}, let's connect",
+        template_html
+    )
+    
+    # List templates
+    list_templates = tester.test_list_templates()
+    
+    # Preview template
+    if template_success:
+        preview_template = tester.test_preview_template(template_id)
+    
+    # 6. Test Email Personalization APIs
+    print("\n🔍 TESTING EMAIL PERSONALIZATION APIS")
+    
+    personalization_content = "Hello {{first_name}} from {{company}}, this is a test email."
+    validate_personalization = tester.test_validate_personalization(personalization_content)
+    preview_personalization = tester.test_preview_personalization(personalization_content)
+    
+    # 7. Test Campaign Management APIs
+    print("\n🔍 TESTING CAMPAIGN MANAGEMENT APIS")
+    
+    # Create campaign
+    campaign_html = """
+    <html>
+    <body>
+        <h1>Hello {{first_name}},</h1>
+        <p>We're reaching out from PixelRise WebCo to introduce our new services.</p>
+        <p>As {{company}} is a leader in your industry, we thought you might be interested.</p>
+        <p>Best regards,<br>PixelRise Team</p>
+    </body>
+    </html>
+    """
+    
+    campaign_success, campaign_id = tester.test_create_campaign(
+        "Test Outreach Campaign",
+        "New services for {{company}}",
+        campaign_html,
+        "sales@pixelrisewebco.com",
+        "PixelRise Sales"
+    )
+    
+    # List campaigns
+    list_campaigns = tester.test_list_campaigns()
+    
+    # Get specific campaign
+    if campaign_success:
+        get_campaign = tester.test_get_campaign(campaign_id)
+        
+        # Prepare campaign
+        prepare_campaign = tester.test_prepare_campaign(campaign_id)
+        
+        # Send campaign
+        if prepare_campaign:
+            send_campaign = tester.test_send_campaign(campaign_id)
+    
+    # 8. Test Analytics APIs
+    print("\n🔍 TESTING ANALYTICS APIS")
+    
+    dashboard_analytics = tester.test_dashboard_analytics()
+    campaign_analytics = tester.test_campaign_analytics()
     
     # Print summary
     success = tester.print_summary()
@@ -909,14 +876,13 @@ def main():
     # Return results for each API category
     results = {
         "health_check": health_check_result,
-        "mx_lookup": all([mx_lookup_gmail, mx_lookup_yahoo, mx_lookup_nonexistent]),
-        "auth_check": all([auth_check_gmail, auth_check_example]),
-        "email_sending": all([email_send_nonexistent, invalid_email_format, email_send_valid_format]),
-        "email_to_real_address": all([email_to_real_from_gmail, email_to_real_from_generic]),
-        "received_emails": received_emails,
-        "user_emails": all([user_emails, user_emails_sent]),
-        "server_status": server_status,
-        "dns_records": dns_records
+        "legacy_apis": all([mx_lookup_gmail, email_send_test]),
+        "auth_dns_apis": all([auth_check, dns_records]),
+        "contact_management": all([contact1_success, contact2_success, list_contacts, bulk_import]),
+        "template_management": all([template_success, list_templates]),
+        "email_personalization": all([validate_personalization, preview_personalization]),
+        "campaign_management": campaign_success and list_campaigns,
+        "analytics": all([dashboard_analytics, campaign_analytics])
     }
     
     print("\n" + "="*50)
