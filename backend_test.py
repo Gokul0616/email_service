@@ -673,17 +673,13 @@ class EmailServiceTester:
     # Email Personalization API Tests
     def test_validate_personalization(self, content):
         """Test validating content for personalization"""
-        data = {
-            "content": content,
-            "required_fields": ["first_name", "company"]
-        }
+        data = content  # Send content directly as the request body
         
         success, response = self.run_test(
             "Validate Personalization",
             "POST",
-            "/api/personalization/validate",
-            200,
-            data=data
+            "/api/personalization/validate?content=" + content,
+            200
         )
         
         if success:
@@ -700,16 +696,11 @@ class EmailServiceTester:
     
     def test_preview_personalization(self, content):
         """Test previewing personalized content"""
-        data = {
-            "content": content
-        }
-        
         success, response = self.run_test(
             "Preview Personalization",
             "POST",
-            "/api/personalization/preview",
-            200,
-            data=data
+            "/api/personalization/preview?content=" + content,
+            200
         )
         
         if success:
