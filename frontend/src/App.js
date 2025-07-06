@@ -193,12 +193,23 @@ function App() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            📧 Complete Email Service System
+            📧 Professional Email Service Platform
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Full-featured email service built from scratch with raw socket SMTP, DKIM authentication, 
-            SMTP server, and email retrieval - all without using external email libraries.
+            Complete email delivery service with multi-method delivery, DKIM authentication, 
+            and Gmail/Yahoo compatibility. Built like SendGrid but fully customizable.
           </p>
+          <div className="mt-4 flex justify-center space-x-4">
+            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+              ✅ Gmail Compatible
+            </span>
+            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+              ✅ Professional Delivery
+            </span>
+            <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+              ✅ Multi-Method Relay
+            </span>
+          </div>
         </div>
 
         {/* Navigation Tabs */}
