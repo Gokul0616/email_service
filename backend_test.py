@@ -4,6 +4,9 @@ import sys
 import time
 import random
 import string
+import csv
+import io
+from datetime import datetime, timedelta
 
 class EmailServiceTester:
     def __init__(self, base_url="https://822d7476-e617-436c-973c-48dfb3bed99c.preview.emergentagent.com"):
@@ -11,11 +14,14 @@ class EmailServiceTester:
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
+        self.created_contacts = []
+        self.created_templates = []
+        self.created_campaigns = []
 
-    def run_test(self, name, method, endpoint, expected_status=200, data=None, params=None):
+    def run_test(self, name, method, endpoint, expected_status=200, data=None, params=None, files=None):
         """Run a single API test"""
         url = f"{self.base_url}{endpoint}"
-        headers = {'Content-Type': 'application/json'}
+        headers = {'Content-Type': 'application/json'} if not files else {}
         
         self.tests_run += 1
         print(f"\n🔍 Testing {name}...")
@@ -24,7 +30,14 @@ class EmailServiceTester:
             if method == 'GET':
                 response = requests.get(url, headers=headers, params=params)
             elif method == 'POST':
-                response = requests.post(url, json=data, headers=headers)
+                if files:
+                    response = requests.post(url, files=files, data=data)
+                else:
+                    response = requests.post(url, json=data, headers=headers)
+            elif method == 'PUT':
+                response = requests.put(url, json=data, headers=headers)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers)
             
             # Print response details for debugging
             print(f"Status Code: {response.status_code}")
