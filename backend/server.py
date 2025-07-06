@@ -565,17 +565,641 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy", 
-        "service": "professional-email-service",
+        "service": "cold-email-campaign-system",
         "features": [
-            "Professional Email Relay",
-            "Multi-Method Delivery", 
+            "Campaign Management",
+            "Contact Management", 
+            "Email Templates",
+            "A/B Testing",
+            "Analytics & Tracking",
+            "Email Personalization",
             "DKIM Authentication", 
             "SMTP Server",
             "DNS MX Resolution",
-            "Delivery Status Tracking",
-            "Gmail/Yahoo Compatible"
+            "Deliverability Optimization"
         ]
     }
+
+# ===========================================
+# CAMPAIGN MANAGEMENT ENDPOINTS
+# ===========================================
+
+@app.post("/api/campaigns", response_model=CampaignResponse)
+async def create_campaign(campaign: CampaignCreate):
+    """Create a new email campaign"""
+    try:
+        result = campaign_service.create_campaign(campaign.dict())
+        return CampaignResponse(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/campaigns")
+async def get_campaigns(
+    status: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0)
+):
+    """Get all campaigns with optional filtering"""
+    try:
+        filters = {}
+        if status:
+            filters["status"] = status
+        
+        campaigns = db_manager.get_campaigns(filters, limit, offset)
+        return {
+            "campaigns": campaigns,
+            "total": len(campaigns),
+            "limit": limit,
+            "offset": offset
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/campaigns/{campaign_id}")
+async def get_campaign(campaign_id: str):
+    """Get a specific campaign"""
+    try:
+        campaign = db_manager.get_campaign(campaign_id)
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        return campaign
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/api/campaigns/{campaign_id}")
+async def update_campaign(campaign_id: str, updates: Dict[str, Any]):
+    """Update a campaign"""
+    try:
+        success = db_manager.update_campaign(campaign_id, updates)
+        if not success:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        return {"success": True, "message": "Campaign updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/campaigns/{campaign_id}")
+async def delete_campaign(campaign_id: str):
+    """Delete a campaign"""
+    try:
+        success = db_manager.delete_campaign(campaign_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        return {"success": True, "message": "Campaign deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/campaigns/{campaign_id}/prepare")
+async def prepare_campaign(campaign_id: str):
+    """Prepare campaign emails for sending"""
+    try:
+        result = campaign_service.prepare_campaign_emails(campaign_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/campaigns/{campaign_id}/send")
+async def send_campaign(campaign_id: str):
+    """Send a campaign"""
+    try:
+        result = await campaign_service.send_campaign(campaign_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/campaigns/{campaign_id}/schedule")
+async def schedule_campaign(campaign_id: str, scheduled_time: datetime):
+    """Schedule a campaign for future sending"""
+    try:
+        result = campaign_service.schedule_campaign(campaign_id, scheduled_time)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/campaigns/{campaign_id}/pause")
+async def pause_campaign(campaign_id: str):
+    """Pause a campaign"""
+    try:
+        result = campaign_service.pause_campaign(campaign_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/campaigns/{campaign_id}/resume")
+async def resume_campaign(campaign_id: str):
+    """Resume a paused campaign"""
+    try:
+        result = campaign_service.resume_campaign(campaign_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/campaigns/{campaign_id}/stats")
+async def get_campaign_stats(campaign_id: str):
+    """Get campaign statistics"""
+    try:
+        result = campaign_service.get_campaign_stats(campaign_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/campaigns/{campaign_id}/emails")
+async def get_campaign_emails(campaign_id: str, status: Optional[str] = None):
+    """Get emails for a campaign"""
+    try:
+        emails = db_manager.get_campaign_emails(campaign_id, status)
+        return {
+            "emails": emails,
+            "total": len(emails)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===========================================
+# CONTACT MANAGEMENT ENDPOINTS
+# ===========================================
+
+@app.post("/api/contacts")
+async def create_contact(contact: Contact):
+    """Create a new contact"""
+    try:
+        contact_id = db_manager.create_contact(contact.dict())
+        return {"success": True, "message": "Contact created successfully", "contact_id": contact_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/contacts")
+async def get_contacts(
+    status: Optional[str] = Query(None),
+    tag: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0)
+):
+    """Get all contacts with optional filtering"""
+    try:
+        filters = {}
+        if status:
+            filters["status"] = status
+        if tag:
+            filters["tags"] = {"$in": [tag]}
+        
+        contacts = db_manager.get_contacts(filters, limit, offset)
+        return {
+            "contacts": contacts,
+            "total": len(contacts),
+            "limit": limit,
+            "offset": offset
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/contacts/{contact_id}")
+async def get_contact(contact_id: str):
+    """Get a specific contact"""
+    try:
+        contact = db_manager.get_contact(contact_id)
+        if not contact:
+            raise HTTPException(status_code=404, detail="Contact not found")
+        return contact
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/api/contacts/{contact_id}")
+async def update_contact(contact_id: str, updates: Dict[str, Any]):
+    """Update a contact"""
+    try:
+        success = db_manager.update_contact(contact_id, updates)
+        if not success:
+            raise HTTPException(status_code=404, detail="Contact not found")
+        return {"success": True, "message": "Contact updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/contacts/{contact_id}")
+async def delete_contact(contact_id: str):
+    """Delete a contact"""
+    try:
+        success = db_manager.delete_contact(contact_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Contact not found")
+        return {"success": True, "message": "Contact deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/contacts/bulk-import")
+async def bulk_import_contacts(file: UploadFile = File(...)):
+    """Bulk import contacts from CSV file"""
+    try:
+        # Read CSV file
+        contents = await file.read()
+        csv_data = io.StringIO(contents.decode('utf-8'))
+        reader = csv.DictReader(csv_data)
+        
+        # Convert to contacts
+        contacts = []
+        for row in reader:
+            contact_data = {
+                "email": row.get("email", "").strip(),
+                "first_name": row.get("first_name", "").strip(),
+                "last_name": row.get("last_name", "").strip(),
+                "company": row.get("company", "").strip(),
+                "phone": row.get("phone", "").strip(),
+                "tags": [tag.strip() for tag in row.get("tags", "").split(",") if tag.strip()],
+                "custom_fields": {k: v for k, v in row.items() if k not in ["email", "first_name", "last_name", "company", "phone", "tags"]}
+            }
+            
+            if contact_data["email"]:
+                contact = Contact(**contact_data)
+                contacts.append(contact.dict())
+        
+        # Bulk create
+        result = db_manager.bulk_create_contacts(contacts)
+        
+        return {
+            "success": True,
+            "message": f"Imported {result['created']} contacts, skipped {result['skipped']} duplicates",
+            "created": result["created"],
+            "skipped": result["skipped"],
+            "errors": result["errors"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/contacts/export")
+async def export_contacts(format: str = Query("csv", enum=["csv", "excel"])):
+    """Export contacts to CSV or Excel"""
+    try:
+        contacts = db_manager.get_contacts(limit=10000)
+        
+        if not contacts:
+            raise HTTPException(status_code=404, detail="No contacts found")
+        
+        # Create DataFrame
+        df = pd.DataFrame(contacts)
+        
+        if format == "csv":
+            output = io.StringIO()
+            df.to_csv(output, index=False)
+            response = Response(
+                content=output.getvalue(),
+                media_type="text/csv",
+                headers={"Content-Disposition": "attachment; filename=contacts.csv"}
+            )
+            return response
+        else:  # excel
+            output = io.BytesIO()
+            df.to_excel(output, index=False)
+            response = Response(
+                content=output.getvalue(),
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={"Content-Disposition": "attachment; filename=contacts.xlsx"}
+            )
+            return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===========================================
+# EMAIL TEMPLATE ENDPOINTS
+# ===========================================
+
+@app.post("/api/templates")
+async def create_template(template: EmailTemplate):
+    """Create a new email template"""
+    try:
+        template_id = db_manager.create_template(template.dict())
+        return {"success": True, "message": "Template created successfully", "template_id": template_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/templates")
+async def get_templates(category: Optional[str] = Query(None)):
+    """Get all email templates"""
+    try:
+        filters = {}
+        if category:
+            filters["category"] = category
+        
+        templates = db_manager.get_templates(filters)
+        return {
+            "templates": templates,
+            "total": len(templates)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/templates/{template_id}")
+async def get_template(template_id: str):
+    """Get a specific template"""
+    try:
+        template = db_manager.get_template(template_id)
+        if not template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        return template
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/api/templates/{template_id}")
+async def update_template(template_id: str, updates: Dict[str, Any]):
+    """Update a template"""
+    try:
+        success = db_manager.update_template(template_id, updates)
+        if not success:
+            raise HTTPException(status_code=404, detail="Template not found")
+        return {"success": True, "message": "Template updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/templates/{template_id}")
+async def delete_template(template_id: str):
+    """Delete a template"""
+    try:
+        success = db_manager.delete_template(template_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Template not found")
+        return {"success": True, "message": "Template deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/templates/{template_id}/preview")
+async def preview_template(template_id: str):
+    """Preview a template with sample data"""
+    try:
+        template = db_manager.get_template(template_id)
+        if not template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        # Get sample personalization
+        sample_subject = personalizer.get_sample_personalization(template["subject"])
+        sample_content = personalizer.get_sample_personalization(template["html_content"])
+        
+        return {
+            "subject": sample_subject,
+            "html_content": sample_content,
+            "variables": personalizer.extract_variables(template["html_content"])
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===========================================
+# ANALYTICS ENDPOINTS
+# ===========================================
+
+@app.get("/api/analytics/dashboard")
+async def get_dashboard_analytics():
+    """Get dashboard analytics"""
+    try:
+        stats = db_manager.get_dashboard_stats()
+        return stats
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/campaigns")
+async def get_campaigns_analytics(
+    start_date: Optional[datetime] = Query(None),
+    end_date: Optional[datetime] = Query(None)
+):
+    """Get analytics for all campaigns"""
+    try:
+        filters = {}
+        if start_date:
+            filters["created_at"] = {"$gte": start_date}
+        if end_date:
+            if "created_at" not in filters:
+                filters["created_at"] = {}
+            filters["created_at"]["$lte"] = end_date
+        
+        campaigns = db_manager.get_campaigns(filters, limit=1000)
+        
+        # Calculate aggregate stats
+        total_campaigns = len(campaigns)
+        total_sent = sum(c.get("sent_count", 0) for c in campaigns)
+        total_opens = sum(c.get("opened_count", 0) for c in campaigns)
+        total_clicks = sum(c.get("clicked_count", 0) for c in campaigns)
+        
+        return {
+            "total_campaigns": total_campaigns,
+            "total_sent": total_sent,
+            "total_opens": total_opens,
+            "total_clicks": total_clicks,
+            "overall_open_rate": (total_opens / total_sent * 100) if total_sent > 0 else 0,
+            "overall_click_rate": (total_clicks / total_sent * 100) if total_sent > 0 else 0,
+            "campaigns": campaigns
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===========================================
+# EMAIL PERSONALIZATION ENDPOINTS
+# ===========================================
+
+@app.post("/api/personalization/validate")
+async def validate_personalization(content: str, required_fields: List[str] = None):
+    """Validate email content for personalization"""
+    try:
+        result = personalizer.validate_content(content, required_fields)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/personalization/preview")
+async def preview_personalization(content: str):
+    """Preview personalized content with sample data"""
+    try:
+        sample = personalizer.get_sample_personalization(content)
+        variables = personalizer.extract_variables(content)
+        stats = personalizer.get_personalization_stats(content)
+        
+        return {
+            "original": content,
+            "personalized": sample,
+            "variables": variables,
+            "stats": stats
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===========================================
+# TRACKING ENDPOINTS
+# ===========================================
+
+@app.get("/api/track/open/{tracking_id}")
+async def track_email_open(tracking_id: str, request: Request):
+    """Track email opens"""
+    try:
+        # Get client info
+        client_ip = request.client.host
+        user_agent = request.headers.get("user-agent", "")
+        
+        # Update email status
+        db_manager.update_campaign_email(tracking_id, {
+            "status": "opened",
+            "opened_at": datetime.now(),
+            "open_count": 1  # This would be incremented in a real implementation
+        })
+        
+        # Create analytics event
+        analytics_data = {
+            "email_id": tracking_id,
+            "event_type": "open",
+            "event_timestamp": datetime.now(),
+            "ip_address": client_ip,
+            "user_agent": user_agent
+        }
+        
+        analytics_event = EmailAnalytics(**analytics_data)
+        db_manager.create_analytics_event(analytics_event.dict())
+        
+        # Return 1x1 transparent pixel
+        pixel_data = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==")
+        return Response(content=pixel_data, media_type="image/png")
+    except Exception as e:
+        return Response(content=pixel_data, media_type="image/png")  # Still return pixel even on error
+
+@app.get("/api/track/click/{tracking_id}")
+async def track_email_click(tracking_id: str, url: str, request: Request):
+    """Track email clicks"""
+    try:
+        # Get client info
+        client_ip = request.client.host
+        user_agent = request.headers.get("user-agent", "")
+        
+        # Update email status
+        db_manager.update_campaign_email(tracking_id, {
+            "status": "clicked",
+            "clicked_at": datetime.now(),
+            "click_count": 1  # This would be incremented in a real implementation
+        })
+        
+        # Create analytics event
+        analytics_data = {
+            "email_id": tracking_id,
+            "event_type": "click",
+            "event_timestamp": datetime.now(),
+            "ip_address": client_ip,
+            "user_agent": user_agent,
+            "click_url": url
+        }
+        
+        analytics_event = EmailAnalytics(**analytics_data)
+        db_manager.create_analytics_event(analytics_event.dict())
+        
+        # Redirect to original URL
+        return Response(
+            status_code=302,
+            headers={"Location": url}
+        )
+    except Exception as e:
+        return Response(
+            status_code=302,
+            headers={"Location": url}
+        )
+
+@app.post("/api/unsubscribe")
+async def unsubscribe_email(email: str, campaign_id: Optional[str] = None, reason: Optional[str] = None):
+    """Handle email unsubscribe"""
+    try:
+        # Create unsubscribe record
+        unsubscribe_data = {
+            "email": email,
+            "campaign_id": campaign_id,
+            "reason": reason
+        }
+        
+        unsubscribe_record = UnsubscribeRequest(**unsubscribe_data)
+        db_manager.create_unsubscribe(unsubscribe_record.dict())
+        
+        return {"success": True, "message": "Email unsubscribed successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/unsubscribe/{email}")
+async def unsubscribe_page(email: str):
+    """Unsubscribe confirmation page"""
+    try:
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Unsubscribe Confirmation</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }}
+                .container {{ text-align: center; }}
+                .button {{ background-color: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }}
+                .success {{ color: green; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h2>Unsubscribe from Email List</h2>
+                <p>Click the button below to unsubscribe {email} from all future emails.</p>
+                <button class="button" onclick="unsubscribe()">Unsubscribe</button>
+                <div id="result"></div>
+            </div>
+            <script>
+                function unsubscribe() {{
+                    fetch('/api/unsubscribe', {{
+                        method: 'POST',
+                        headers: {{ 'Content-Type': 'application/json' }},
+                        body: JSON.stringify({{ email: '{email}', reason: 'User requested' }})
+                    }})
+                    .then(response => response.json())
+                    .then(data => {{
+                        document.getElementById('result').innerHTML = '<p class="success">You have been unsubscribed successfully.</p>';
+                    }})
+                    .catch(error => {{
+                        document.getElementById('result').innerHTML = '<p>Error: ' + error.message + '</p>';
+                    }});
+                }}
+            </script>
+        </body>
+        </html>
+        """
+        
+        return HTMLResponse(content=html_content)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===========================================
+# LEGACY ENDPOINTS (keep for compatibility)
+# ===========================================
+
+@app.post("/api/send-email", response_model=EmailResponse)
+async def send_email(email: EmailMessage):
+    """Send email using professional email relay system (legacy endpoint)"""
+    try:
+        # Basic validation
+        if not email.to_email or '@' not in email.to_email:
+            return EmailResponse(
+                success=False,
+                message="Invalid recipient email address format"
+            )
+        
+        if not email.from_email or '@' not in email.from_email:
+            return EmailResponse(
+                success=False,
+                message="Invalid sender email address format"
+            )
+        
+        # Use the professional email relay system
+        result = email_relay.send_email_via_relay(
+            from_email=email.from_email,
+            to_email=email.to_email,
+            subject=email.subject,
+            body=email.body,
+            is_html=email.is_html
+        )
+        
+        # Convert relay result to EmailResponse
+        return EmailResponse(
+            success=result['success'],
+            message=result['message'],
+            message_id=result.get('message_id') or result.get('relay_id', str(uuid.uuid4()))
+        )
+    
+    except Exception as e:
+        return EmailResponse(
+            success=False,
+            message=f"Email service error: {str(e)}"
+        )
 
 if __name__ == "__main__":
     import uvicorn
