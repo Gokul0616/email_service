@@ -450,3 +450,5 @@ agent_communication:
     message: "Tested the new authentication features. The Authentication Checker API works correctly for both gmail.com and example.com domains. The improved Email Sending API now provides better error messages with authentication guidance when sending fails due to authentication issues. All other APIs continue to work correctly."
   - agent: "testing"
     message: "Completed comprehensive testing of the cold email campaign system backend APIs. All APIs are working correctly, including Campaign Management, Contact Management, Template Management, Analytics, and Email Personalization. Fixed MongoDB ObjectId serialization issues to ensure proper JSON responses. The system is fully functional and ready for use."
+  - agent: "main"
+    message: "Starting comprehensive testing of all email campaign system features. User requested testing of all features including email sending from their domain (pixelrisewebco.com). Will test backend APIs first, then frontend functionality."
