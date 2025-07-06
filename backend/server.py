@@ -46,8 +46,8 @@ class UserRegistration(BaseModel):
     password: str
     full_name: str
 
-# Initialize email authenticator and relay
-email_auth = EmailAuthenticator(domain="customemailserver.com")
+# Initialize email authenticator and relay for pixelrisewebco.com
+email_auth = EmailAuthenticator(domain="pixelrisewebco.com")
 email_relay = EmailRelay()
 
 # DNS MX Record Lookup Implementation
