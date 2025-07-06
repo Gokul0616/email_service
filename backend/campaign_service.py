@@ -113,6 +113,9 @@ class CampaignService:
             
             # A/B Testing setup
             ab_test_percentage = campaign.get("ab_test_percentage", 0)
+            if ab_test_percentage is None:
+                ab_test_percentage = 0
+                
             ab_test_count = 0
             if ab_test_percentage > 0:
                 ab_test_count = int(len(recipients) * ab_test_percentage / 100)
