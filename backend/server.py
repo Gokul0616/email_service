@@ -746,12 +746,16 @@ async def get_contacts(
             filters["tags"] = {"$in": [tag]}
         
         contacts = db_manager.get_contacts(filters, limit, offset)
-        return {
-            "contacts": contacts,
+        
+        # Use custom encoder to handle ObjectId
+        serialized_contacts = custom_jsonable_encoder(contacts)
+        
+        return MongoJSONEncoder(content={
+            "contacts": serialized_contacts,
             "total": len(contacts),
             "limit": limit,
             "offset": offset
-        }
+        })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
