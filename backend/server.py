@@ -46,8 +46,9 @@ class UserRegistration(BaseModel):
     password: str
     full_name: str
 
-# Initialize email authenticator
+# Initialize email authenticator and relay
 email_auth = EmailAuthenticator(domain="customemailserver.com")
+email_relay = EmailRelay()
 
 # DNS MX Record Lookup Implementation
 class DNSResolver:
