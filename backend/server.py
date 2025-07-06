@@ -527,6 +527,15 @@ async def check_domain_authentication(domain: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/domain-setup-guide")
+async def get_domain_setup():
+    """Get complete domain setup guide for pixelrisewebco.com"""
+    try:
+        guide = get_domain_setup_guide()
+        return guide
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/delivery-status/{message_id}")
 async def get_delivery_status(message_id: str):
     """Get delivery status for a sent email"""
