@@ -30,13 +30,22 @@ class EmailAuthenticator:
     def load_dkim_key(self):
         """Load DKIM private key from file"""
         try:
+            # Try domain-specific key first
+            domain_key_path = f"/app/backend/dkim_private_{self.domain.replace('.', '_')}.key"
+            if os.path.exists(domain_key_path):
+                with open(domain_key_path, 'rb') as f:
+                    self.dkim_private_key = f.read()
+                print(f"DKIM private key loaded for domain: {self.domain}")
+                return
+            
+            # Fallback to default key
             key_path = "/app/backend/dkim_private.key"
             if os.path.exists(key_path):
                 with open(key_path, 'rb') as f:
                     self.dkim_private_key = f.read()
-                print(f"DKIM private key loaded for domain: {self.domain}")
+                print(f"Default DKIM private key loaded for domain: {self.domain}")
             else:
-                print(f"DKIM private key not found at {key_path}")
+                print(f"DKIM private key not found, will generate temporary key")
         except Exception as e:
             print(f"Error loading DKIM key: {e}")
     
