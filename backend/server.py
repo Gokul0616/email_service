@@ -14,6 +14,7 @@ import json
 # Import our custom modules
 from backend.email_auth import EmailAuthenticator
 from backend.smtp_server import smtp_server
+from backend.email_relay import EmailRelay
 
 app = FastAPI()
 
