@@ -1157,6 +1157,21 @@ def main():
     # DNS Records API
     dns_records = tester.test_dns_records("pixelrisewebco.com")
     
+    # Server Status API
+    server_status = tester.test_server_status()
+    
+    # Received Emails API
+    received_emails = tester.test_received_emails()
+    
+    # Delivery Status API
+    delivery_status = tester.test_send_email_to_real_address(
+        "test@gmail.com",
+        "sales@pixelrisewebco.com",
+        "PixelRise Sales",
+        "Test Email to Gmail",
+        "This is a test email to Gmail from pixelrisewebco.com domain."
+    )
+    
     # 2. Test Campaign Management APIs
     print("\n🔍 TESTING CAMPAIGN MANAGEMENT APIS")
     
@@ -1334,7 +1349,7 @@ def main():
     
     # Return results for each API category
     results = {
-        "core_email_apis": all([health_check_result, mx_lookup_gmail, mx_lookup_yahoo, email_send_test, invalid_email_test, auth_check_gmail, auth_check_pixelrise, dns_records]),
+        "core_email_apis": all([health_check_result, mx_lookup_gmail, mx_lookup_yahoo, email_send_test, invalid_email_test, auth_check_gmail, auth_check_pixelrise, dns_records, server_status, received_emails, delivery_status]),
         "campaign_management": campaign_success and list_campaigns,
         "contact_management": all([contact1_success, contact2_success, list_contacts, bulk_import, export_contacts_csv]),
         "template_management": template_success and list_templates,
