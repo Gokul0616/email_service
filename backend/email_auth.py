@@ -21,6 +21,11 @@ class EmailAuthenticator:
         self.dkim_selector = dkim_selector
         self.dkim_private_key = None
         self.load_dkim_key()
+        self.fallback_smtp_config = {
+            'smtp.gmail.com': {'port': 587, 'tls': True},
+            'smtp.yahoo.com': {'port': 587, 'tls': True},
+            'smtp.outlook.com': {'port': 587, 'tls': True}
+        }
     
     def load_dkim_key(self):
         """Load DKIM private key from file"""
