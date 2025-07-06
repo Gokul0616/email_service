@@ -74,7 +74,7 @@ class EmailServiceTester:
         )
         if success:
             data = response.json()
-            if data.get("status") == "healthy" and data.get("service") == "custom-email-server":
+            if data.get("status") == "healthy" and data.get("service") == "cold-email-campaign-system":
                 print("✅ Health check response content verified")
                 return True
             else:
@@ -358,6 +358,371 @@ class EmailServiceTester:
             # If it succeeded (unlikely), that's fine too
             print(f"✅ Email sent successfully with message ID: {response_data.get('message_id', 'unknown')}")
             return True
+            
+    # Campaign Management API Tests
+    def test_create_campaign(self, name, subject, html_content, from_email, from_name):
+        """Test creating a new campaign"""
+        data = {
+            "name": name,
+            "subject": subject,
+            "html_content": html_content,
+            "text_content": "Plain text version of the email",
+            "from_email": from_email,
+            "from_name": from_name,
+            "contact_lists": [],
+            "tags": ["test", "api"],
+            "send_immediately": False
+        }
+        
+        success, response = self.run_test(
+            "Create Campaign",
+            "POST",
+            "/api/campaigns",
+            200,
+            data=data
+        )
+        
+        if success:
+            response_data = response.json()
+            if response_data.get("success") and response_data.get("campaign_id"):
+                print(f"✅ Campaign created with ID: {response_data['campaign_id']}")
+                self.created_campaigns.append(response_data['campaign_id'])
+                return True, response_data['campaign_id']
+            else:
+                print("❌ Campaign creation response missing success or campaign_id")
+                return False, None
+        return False, None
+    
+    def test_list_campaigns(self):
+        """Test listing all campaigns"""
+        success, response = self.run_test(
+            "List Campaigns",
+            "GET",
+            "/api/campaigns",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "campaigns" in data and "total" in data:
+                print(f"✅ Retrieved {data['total']} campaigns")
+                return True
+            else:
+                print("❌ Campaign list response format incorrect")
+                return False
+        return False
+    
+    def test_get_campaign(self, campaign_id):
+        """Test getting a specific campaign"""
+        success, response = self.run_test(
+            f"Get Campaign {campaign_id}",
+            "GET",
+            f"/api/campaigns/{campaign_id}",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "id" in data and data["id"] == campaign_id:
+                print(f"✅ Retrieved campaign {campaign_id}")
+                return True
+            else:
+                print("❌ Campaign retrieval response format incorrect")
+                return False
+        return False
+    
+    def test_prepare_campaign(self, campaign_id):
+        """Test preparing a campaign for sending"""
+        success, response = self.run_test(
+            f"Prepare Campaign {campaign_id}",
+            "POST",
+            f"/api/campaigns/{campaign_id}/prepare",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success"):
+                print(f"✅ Campaign {campaign_id} prepared successfully")
+                return True
+            else:
+                print(f"❌ Campaign preparation failed: {data.get('message', 'No error message')}")
+                return False
+        return False
+    
+    def test_send_campaign(self, campaign_id):
+        """Test sending a campaign"""
+        success, response = self.run_test(
+            f"Send Campaign {campaign_id}",
+            "POST",
+            f"/api/campaigns/{campaign_id}/send",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success"):
+                print(f"✅ Campaign {campaign_id} sent successfully")
+                return True
+            else:
+                print(f"❌ Campaign sending failed: {data.get('message', 'No error message')}")
+                return False
+        return False
+    
+    # Contact Management API Tests
+    def test_create_contact(self, email, first_name, last_name, company):
+        """Test creating a new contact"""
+        data = {
+            "email": email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "company": company,
+            "tags": ["test", "api"]
+        }
+        
+        success, response = self.run_test(
+            f"Create Contact {email}",
+            "POST",
+            "/api/contacts",
+            200,
+            data=data
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success") and data.get("contact_id"):
+                print(f"✅ Contact created with ID: {data['contact_id']}")
+                self.created_contacts.append(data['contact_id'])
+                return True, data['contact_id']
+            else:
+                print("❌ Contact creation response missing success or contact_id")
+                return False, None
+        return False, None
+    
+    def test_list_contacts(self):
+        """Test listing all contacts"""
+        success, response = self.run_test(
+            "List Contacts",
+            "GET",
+            "/api/contacts",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "contacts" in data and "total" in data:
+                print(f"✅ Retrieved {data['total']} contacts")
+                return True
+            else:
+                print("❌ Contact list response format incorrect")
+                return False
+        return False
+    
+    def test_bulk_import_contacts(self):
+        """Test bulk importing contacts from CSV"""
+        # Create a sample CSV file
+        csv_data = [
+            ["email", "first_name", "last_name", "company", "phone", "tags"],
+            ["john.smith@example.com", "John", "Smith", "Example Corp", "555-1234", "sales,lead"],
+            ["jane.doe@example.com", "Jane", "Doe", "Test Inc", "555-5678", "marketing,lead"],
+            ["bob.jones@example.com", "Bob", "Jones", "Sample LLC", "555-9012", "support"]
+        ]
+        
+        csv_file = io.StringIO()
+        writer = csv.writer(csv_file)
+        writer.writerows(csv_data)
+        csv_file.seek(0)
+        
+        files = {'file': ('contacts.csv', csv_file.getvalue(), 'text/csv')}
+        
+        success, response = self.run_test(
+            "Bulk Import Contacts",
+            "POST",
+            "/api/contacts/bulk-import",
+            200,
+            files=files
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success") and "created" in data:
+                print(f"✅ Imported {data['created']} contacts, skipped {data.get('skipped', 0)}")
+                return True
+            else:
+                print("❌ Bulk import response format incorrect")
+                return False
+        return False
+    
+    # Template Management API Tests
+    def test_create_template(self, name, subject, html_content):
+        """Test creating a new email template"""
+        data = {
+            "name": name,
+            "subject": subject,
+            "html_content": html_content,
+            "text_content": "Plain text version of the template",
+            "category": "test"
+        }
+        
+        success, response = self.run_test(
+            f"Create Template {name}",
+            "POST",
+            "/api/templates",
+            200,
+            data=data
+        )
+        
+        if success:
+            data = response.json()
+            if data.get("success") and data.get("template_id"):
+                print(f"✅ Template created with ID: {data['template_id']}")
+                self.created_templates.append(data['template_id'])
+                return True, data['template_id']
+            else:
+                print("❌ Template creation response missing success or template_id")
+                return False, None
+        return False, None
+    
+    def test_list_templates(self):
+        """Test listing all templates"""
+        success, response = self.run_test(
+            "List Templates",
+            "GET",
+            "/api/templates",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "templates" in data and "total" in data:
+                print(f"✅ Retrieved {data['total']} templates")
+                return True
+            else:
+                print("❌ Template list response format incorrect")
+                return False
+        return False
+    
+    def test_preview_template(self, template_id):
+        """Test previewing a template with sample data"""
+        success, response = self.run_test(
+            f"Preview Template {template_id}",
+            "POST",
+            f"/api/templates/{template_id}/preview",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            if "subject" in data and "html_content" in data:
+                print(f"✅ Template preview generated successfully")
+                return True
+            else:
+                print("❌ Template preview response format incorrect")
+                return False
+        return False
+    
+    # Analytics API Tests
+    def test_dashboard_analytics(self):
+        """Test getting dashboard analytics"""
+        success, response = self.run_test(
+            "Dashboard Analytics",
+            "GET",
+            "/api/analytics/dashboard",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            expected_fields = ["total_contacts", "active_contacts", "total_campaigns", 
+                              "total_emails_sent", "total_opens", "total_clicks"]
+            
+            missing_fields = [field for field in expected_fields if field not in data]
+            
+            if not missing_fields:
+                print(f"✅ Dashboard analytics retrieved successfully")
+                return True
+            else:
+                print(f"❌ Dashboard analytics missing fields: {', '.join(missing_fields)}")
+                return False
+        return False
+    
+    def test_campaign_analytics(self):
+        """Test getting campaign analytics"""
+        success, response = self.run_test(
+            "Campaign Analytics",
+            "GET",
+            "/api/analytics/campaigns",
+            200
+        )
+        
+        if success:
+            data = response.json()
+            expected_fields = ["total_campaigns", "total_sent", "total_opens", 
+                              "total_clicks", "overall_open_rate", "overall_click_rate"]
+            
+            missing_fields = [field for field in expected_fields if field not in data]
+            
+            if not missing_fields:
+                print(f"✅ Campaign analytics retrieved successfully")
+                return True
+            else:
+                print(f"❌ Campaign analytics missing fields: {', '.join(missing_fields)}")
+                return False
+        return False
+    
+    # Email Personalization API Tests
+    def test_validate_personalization(self, content):
+        """Test validating content for personalization"""
+        data = {
+            "content": content,
+            "required_fields": ["first_name", "company"]
+        }
+        
+        success, response = self.run_test(
+            "Validate Personalization",
+            "POST",
+            "/api/personalization/validate",
+            200,
+            data=data
+        )
+        
+        if success:
+            data = response.json()
+            if "valid" in data and "variables" in data:
+                print(f"✅ Personalization validation successful")
+                print(f"  - Valid: {data['valid']}")
+                print(f"  - Variables: {', '.join(data.get('variables', []))}")
+                return True
+            else:
+                print("❌ Personalization validation response format incorrect")
+                return False
+        return False
+    
+    def test_preview_personalization(self, content):
+        """Test previewing personalized content"""
+        data = {
+            "content": content
+        }
+        
+        success, response = self.run_test(
+            "Preview Personalization",
+            "POST",
+            "/api/personalization/preview",
+            200,
+            data=data
+        )
+        
+        if success:
+            data = response.json()
+            if "original" in data and "personalized" in data and "variables" in data:
+                print(f"✅ Personalization preview successful")
+                print(f"  - Original: {data['original']}")
+                print(f"  - Personalized: {data['personalized']}")
+                return True
+            else:
+                print("❌ Personalization preview response format incorrect")
+                return False
+        return False
 
     def print_summary(self):
         """Print test summary"""
