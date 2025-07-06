@@ -21,7 +21,8 @@ class EmailRelay:
     """Professional email relay service for sending emails with proper authentication"""
     
     def __init__(self):
-        self.email_auth = EmailAuthenticator(domain="emailrelay.local")
+        self.email_auth = EmailAuthenticator(domain="pixelrisewebco.com")
+        self.real_delivery = RealEmailDelivery(domain="pixelrisewebco.com")
         self.delivery_attempts = 3
         self.retry_delay = 5
         
