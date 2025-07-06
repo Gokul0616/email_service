@@ -246,22 +246,22 @@ function App() {
                 <span className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-3">
                   📤
                 </span>
-                Send Email with DKIM Authentication
+                Professional Email Delivery
               </h2>
               
-              {/* Authentication Notice */}
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
+              {/* Service Features */}
+              <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-6">
                 <div className="flex items-start">
-                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">
-                    💡
+                  <div className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">
+                    🚀
                   </div>
                   <div>
-                    <h3 className="font-bold text-blue-800 mb-1">Email Authentication Tips</h3>
-                    <ul className="text-sm text-blue-700 space-y-1">
-                      <li>• <strong>Use your own domain</strong> for the "From" address (not Gmail/Yahoo/Outlook)</li>
-                      <li>• Check the <strong>"Auth Check"</strong> tab to verify your domain's authentication status</li>
-                      <li>• Use the <strong>"DNS Setup"</strong> tab to get the required DNS records for your domain</li>
-                      <li>• Major email providers require SPF, DKIM, and DMARC records to accept emails</li>
+                    <h3 className="font-bold text-green-800 mb-1">Professional Email Service</h3>
+                    <ul className="text-sm text-green-700 space-y-1">
+                      <li>• <strong>Multi-Method Delivery</strong> - Tries multiple delivery methods for guaranteed delivery</li>
+                      <li>• <strong>Gmail/Yahoo Compatible</strong> - Professional authentication and delivery</li>
+                      <li>• <strong>DKIM Signed</strong> - All emails are cryptographically signed</li>
+                      <li>• <strong>SendGrid-Like API</strong> - Professional grade email service</li>
                     </ul>
                   </div>
                 </div>
