@@ -15,6 +15,7 @@ from typing import Dict, Optional, List
 from datetime import datetime
 import uuid
 from backend.email_auth import EmailAuthenticator
+from backend.real_email_delivery import RealEmailDelivery
 
 class EmailRelay:
     """Professional email relay service for sending emails with proper authentication"""
