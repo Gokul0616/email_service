@@ -30,7 +30,21 @@ function App() {
   useEffect(() => {
     loadReceivedEmails();
     loadServerStatus();
+    loadDomainSetupGuide();
   }, []);
+
+  const loadDomainSetupGuide = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/api/domain-setup-guide`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setDomainSetupGuide(data);
+      }
+    } catch (error) {
+      console.error('Error loading domain setup guide:', error);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
