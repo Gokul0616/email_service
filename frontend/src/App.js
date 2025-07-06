@@ -18,7 +18,7 @@ function App() {
   const [receivedEmails, setReceivedEmails] = useState([]);
   const [serverStatus, setServerStatus] = useState(null);
   const [dnsRecords, setDnsRecords] = useState(null);
-  const [dnsTestDomain, setDnsTestDomain] = useState('');
+  const [dnsTestDomain, setDnsTestDomain] = useState('pixelrisewebco.com');
   const [authCheckResult, setAuthCheckResult] = useState(null);
   const [authCheckDomain, setAuthCheckDomain] = useState('pixelrisewebco.com');
   const [domainSetupGuide, setDomainSetupGuide] = useState(null);
