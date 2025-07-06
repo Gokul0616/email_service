@@ -994,15 +994,18 @@ async def get_campaigns_analytics(
         total_opens = sum(c.get("opened_count", 0) for c in campaigns)
         total_clicks = sum(c.get("clicked_count", 0) for c in campaigns)
         
-        return {
+        # Use custom encoder to handle ObjectId
+        serialized_campaigns = custom_jsonable_encoder(campaigns)
+        
+        return MongoJSONEncoder(content={
             "total_campaigns": total_campaigns,
             "total_sent": total_sent,
             "total_opens": total_opens,
             "total_clicks": total_clicks,
             "overall_open_rate": (total_opens / total_sent * 100) if total_sent > 0 else 0,
             "overall_click_rate": (total_clicks / total_sent * 100) if total_sent > 0 else 0,
-            "campaigns": campaigns
-        }
+            "campaigns": serialized_campaigns
+        })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
