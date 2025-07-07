@@ -1134,15 +1134,10 @@ async def track_email_click(tracking_id: str, url: str, request: Request):
         db_manager.create_analytics_event(analytics_event.dict())
         
         # Redirect to original URL
-        return Response(
-            status_code=302,
-            headers={"Location": url}
-        )
+        return RedirectResponse(url=url, status_code=302)
     except Exception as e:
-        return Response(
-            status_code=302,
-            headers={"Location": url}
-        )
+        # Even on error, redirect to the original URL
+        return RedirectResponse(url=url, status_code=302)
 
 @app.post("/api/unsubscribe")
 async def unsubscribe_email(request: UnsubscribeEmailRequest):
