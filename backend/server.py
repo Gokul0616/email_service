@@ -1042,14 +1042,6 @@ async def get_campaigns_analytics(
 # EMAIL PERSONALIZATION ENDPOINTS
 # ===========================================
 
-# Personalization request models
-class PersonalizationRequest(BaseModel):
-    content: str
-    required_fields: Optional[List[str]] = None
-
-class PersonalizationPreviewRequest(BaseModel):
-    content: str
-
 @app.post("/api/personalization/validate")
 async def validate_personalization(request: PersonalizationRequest):
     """Validate email content for personalization"""
