@@ -1145,14 +1145,14 @@ async def track_email_click(tracking_id: str, url: str, request: Request):
         )
 
 @app.post("/api/unsubscribe")
-async def unsubscribe_email(email: str, campaign_id: Optional[str] = None, reason: Optional[str] = None):
+async def unsubscribe_email(request: UnsubscribeEmailRequest):
     """Handle email unsubscribe"""
     try:
         # Create unsubscribe record
         unsubscribe_data = {
-            "email": email,
-            "campaign_id": campaign_id,
-            "reason": reason
+            "email": request.email,
+            "campaign_id": request.campaign_id,
+            "reason": request.reason
         }
         
         unsubscribe_record = UnsubscribeRequest(**unsubscribe_data)
