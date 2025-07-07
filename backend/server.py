@@ -1028,25 +1028,33 @@ async def get_campaigns_analytics(
 # EMAIL PERSONALIZATION ENDPOINTS
 # ===========================================
 
+# Personalization request models
+class PersonalizationRequest(BaseModel):
+    content: str
+    required_fields: Optional[List[str]] = None
+
+class PersonalizationPreviewRequest(BaseModel):
+    content: str
+
 @app.post("/api/personalization/validate")
-async def validate_personalization(content: str, required_fields: List[str] = None):
+async def validate_personalization(request: PersonalizationRequest):
     """Validate email content for personalization"""
     try:
-        result = personalizer.validate_content(content, required_fields)
+        result = personalizer.validate_content(request.content, request.required_fields)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/personalization/preview")
-async def preview_personalization(content: str):
+async def preview_personalization(request: PersonalizationPreviewRequest):
     """Preview personalized content with sample data"""
     try:
-        sample = personalizer.get_sample_personalization(content)
-        variables = personalizer.extract_variables(content)
-        stats = personalizer.get_personalization_stats(content)
+        sample = personalizer.get_sample_personalization(request.content)
+        variables = personalizer.extract_variables(request.content)
+        stats = personalizer.get_personalization_stats(request.content)
         
         return {
-            "original": content,
+            "original": request.content,
             "personalized": sample,
             "variables": variables,
             "stats": stats
