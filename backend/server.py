@@ -861,7 +861,7 @@ async def bulk_import_contacts(file: UploadFile = File(...)):
 async def export_contacts(format: str = Query("csv", enum=["csv", "excel"])):
     """Export contacts to CSV or Excel"""
     try:
-        contacts = db_manager.get_contacts(limit=10000)
+        contacts = db_manager.get_contacts(filters={}, limit=10000)
         
         if not contacts:
             raise HTTPException(status_code=404, detail="No contacts found")
