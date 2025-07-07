@@ -1208,45 +1208,6 @@ async def unsubscribe_page(email: str):
 # LEGACY ENDPOINTS (keep for compatibility)
 # ===========================================
 
-@app.post("/api/send-email", response_model=EmailResponse)
-async def send_email(email: EmailMessage):
-    """Send email using professional email relay system (legacy endpoint)"""
-    try:
-        # Basic validation
-        if not email.to_email or '@' not in email.to_email:
-            return EmailResponse(
-                success=False,
-                message="Invalid recipient email address format"
-            )
-        
-        if not email.from_email or '@' not in email.from_email:
-            return EmailResponse(
-                success=False,
-                message="Invalid sender email address format"
-            )
-        
-        # Use the professional email relay system
-        result = email_relay.send_email_via_relay(
-            from_email=email.from_email,
-            to_email=email.to_email,
-            subject=email.subject,
-            body=email.body,
-            is_html=email.is_html
-        )
-        
-        # Convert relay result to EmailResponse
-        return EmailResponse(
-            success=result['success'],
-            message=result['message'],
-            message_id=result.get('message_id') or result.get('relay_id', str(uuid.uuid4()))
-        )
-    
-    except Exception as e:
-        return EmailResponse(
-            success=False,
-            message=f"Email service error: {str(e)}"
-        )
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
