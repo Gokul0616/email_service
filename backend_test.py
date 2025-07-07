@@ -1172,7 +1172,92 @@ def main():
         "This is a test email to Gmail from pixelrisewebco.com domain."
     )
     
-    # 2. Test Campaign Management APIs
+    # 2. Test Previously Failing APIs (Now Fixed)
+    print("\n🔍 TESTING PREVIOUSLY FAILING APIS (NOW FIXED)")
+    
+    # 2.1 Contact Management APIs - Get Contact by ID
+    print("\n🔍 TESTING CONTACT MANAGEMENT APIS - GET CONTACT BY ID")
+    
+    # Create a contact first
+    contact_success, contact_id = tester.test_create_contact(
+        f"test.user.{uuid.uuid4()}@example.com",
+        "Test",
+        "User",
+        "Test Company"
+    )
+    
+    # Test get contact by ID (previously failing due to ObjectId serialization)
+    if contact_success:
+        get_contact_result = tester.test_get_contact(contact_id)
+        print(f"✅ Get Contact by ID test {'PASSED' if get_contact_result else 'FAILED'}")
+    else:
+        print("❌ Could not create contact for testing")
+    
+    # 2.2 Contact Management APIs - Export Contacts
+    print("\n🔍 TESTING CONTACT MANAGEMENT APIS - EXPORT CONTACTS")
+    
+    # Test export contacts (previously failing due to route order conflict and ObjectId handling)
+    export_csv_result = tester.test_export_contacts("csv")
+    print(f"✅ Export Contacts (CSV) test {'PASSED' if export_csv_result else 'FAILED'}")
+    
+    export_excel_result = tester.test_export_contacts("excel")
+    print(f"✅ Export Contacts (Excel) test {'PASSED' if export_excel_result else 'FAILED'}")
+    
+    # 2.3 Template Management APIs - Get Template by ID
+    print("\n🔍 TESTING TEMPLATE MANAGEMENT APIS - GET TEMPLATE BY ID")
+    
+    # Create a template first
+    template_html = """
+    <html>
+    <body>
+        <h1>Hello {{first_name}},</h1>
+        <p>We noticed that {{company}} might be interested in our services.</p>
+        <p>Would you be available for a quick call this week?</p>
+        <p>Best regards,<br>Sales Team</p>
+    </body>
+    </html>
+    """
+    
+    template_success, template_id = tester.test_create_template(
+        "Test Template",
+        "{{first_name}}, let's connect",
+        template_html
+    )
+    
+    # Test get template by ID (previously failing due to ObjectId serialization)
+    if template_success:
+        get_template_result = tester.test_get_template(template_id)
+        print(f"✅ Get Template by ID test {'PASSED' if get_template_result else 'FAILED'}")
+    else:
+        print("❌ Could not create template for testing")
+    
+    # 2.4 Email Personalization APIs
+    print("\n🔍 TESTING EMAIL PERSONALIZATION APIS")
+    
+    # Test personalization validation (previously failing due to parameter handling)
+    personalization_content = "Hello {{first_name}} from {{company}}, this is a test email."
+    validate_personalization_result = tester.test_validate_personalization(personalization_content)
+    print(f"✅ Validate Personalization test {'PASSED' if validate_personalization_result else 'FAILED'}")
+    
+    # Test personalization preview (previously failing due to parameter handling)
+    preview_personalization_result = tester.test_preview_personalization(personalization_content)
+    print(f"✅ Preview Personalization test {'PASSED' if preview_personalization_result else 'FAILED'}")
+    
+    # 2.5 Tracking APIs - Click Tracking
+    print("\n🔍 TESTING TRACKING APIS - CLICK TRACKING")
+    
+    # Test click tracking (previously returning 200 instead of 302 redirect)
+    track_click_result = tester.test_track_email_click()
+    print(f"✅ Click Tracking test {'PASSED' if track_click_result else 'FAILED'}")
+    
+    # 2.6 Tracking APIs - Unsubscribe Endpoint
+    print("\n🔍 TESTING TRACKING APIS - UNSUBSCRIBE ENDPOINT")
+    
+    # Test unsubscribe endpoint (previously failing due to parameter handling)
+    unsubscribe_result = tester.test_unsubscribe()
+    print(f"✅ Unsubscribe Endpoint test {'PASSED' if unsubscribe_result else 'FAILED'}")
+    
+    # 3. Test Campaign Management APIs
     print("\n🔍 TESTING CAMPAIGN MANAGEMENT APIS")
     
     # Create campaign
@@ -1239,7 +1324,7 @@ def main():
             # Delete campaign
             delete_campaign = tester.test_delete_campaign(delete_campaign_id)
     
-    # 3. Test Contact Management APIs
+    # 4. Test Contact Management APIs
     print("\n🔍 TESTING CONTACT MANAGEMENT APIS")
     
     # Create individual contacts
@@ -1270,47 +1355,32 @@ def main():
     # Bulk import contacts
     bulk_import = tester.test_bulk_import_contacts()
     
-    # Export contacts
-    export_contacts_csv = tester.test_export_contacts("csv")
-    export_contacts_excel = tester.test_export_contacts("excel")
-    
     # Delete contact
     if contact2_success:
         delete_contact = tester.test_delete_contact(contact2_id)
     
-    # 4. Test Template Management APIs
+    # 5. Test Template Management APIs
     print("\n🔍 TESTING TEMPLATE MANAGEMENT APIS")
-    
-    # Create template with personalization variables
-    template_html = """
-    <html>
-    <body>
-        <h1>Hello {{first_name}},</h1>
-        <p>We noticed that {{company}} might be interested in our services.</p>
-        <p>Would you be available for a quick call this week?</p>
-        <p>Best regards,<br>Sales Team</p>
-    </body>
-    </html>
-    """
-    
-    template_success, template_id = tester.test_create_template(
-        "Sales Outreach Template",
-        "{{first_name}}, let's connect",
-        template_html
-    )
     
     # List templates
     list_templates = tester.test_list_templates()
     
+    # Create another template for testing
+    template_success2, template_id2 = tester.test_create_template(
+        "Sales Outreach Template 2",
+        "{{first_name}}, let's connect again",
+        template_html
+    )
+    
     # Get specific template
-    if template_success:
-        get_template = tester.test_get_template(template_id)
+    if template_success2:
+        get_template2 = tester.test_get_template(template_id2)
         
         # Update template
-        update_template = tester.test_update_template(template_id)
+        update_template = tester.test_update_template(template_id2)
         
         # Preview template
-        preview_template = tester.test_preview_template(template_id)
+        preview_template = tester.test_preview_template(template_id2)
         
         # Create another template for deletion test
         delete_template_success, delete_template_id = tester.test_create_template(
@@ -1323,25 +1393,16 @@ def main():
             # Delete template
             delete_template = tester.test_delete_template(delete_template_id)
     
-    # 5. Test Analytics APIs
+    # 6. Test Analytics APIs
     print("\n🔍 TESTING ANALYTICS APIS")
     
     dashboard_analytics = tester.test_dashboard_analytics()
     campaign_analytics = tester.test_campaign_analytics()
     
-    # 6. Test Email Personalization APIs
-    print("\n🔍 TESTING EMAIL PERSONALIZATION APIS")
-    
-    personalization_content = "Hello {{first_name}} from {{company}}, this is a test email."
-    validate_personalization = tester.test_validate_personalization(personalization_content)
-    preview_personalization = tester.test_preview_personalization(personalization_content)
-    
     # 7. Test Tracking APIs
     print("\n🔍 TESTING TRACKING APIS")
     
     track_open = tester.test_track_email_open()
-    track_click = tester.test_track_email_click()
-    unsubscribe = tester.test_unsubscribe()
     unsubscribe_page = tester.test_unsubscribe_page()
     
     # Print summary
@@ -1350,12 +1411,15 @@ def main():
     # Return results for each API category
     results = {
         "core_email_apis": all([health_check_result, mx_lookup_gmail, mx_lookup_yahoo, email_send_test, invalid_email_test, auth_check_gmail, auth_check_pixelrise, dns_records, server_status, received_emails, delivery_status]),
+        "fixed_contact_management_apis": all([get_contact_result, export_csv_result, export_excel_result]),
+        "fixed_template_management_apis": get_template_result,
+        "fixed_email_personalization_apis": all([validate_personalization_result, preview_personalization_result]),
+        "fixed_tracking_apis": all([track_click_result, unsubscribe_result]),
         "campaign_management": campaign_success and list_campaigns,
-        "contact_management": all([contact1_success, contact2_success, list_contacts, bulk_import, export_contacts_csv]),
+        "contact_management": all([contact1_success, contact2_success, list_contacts, bulk_import]),
         "template_management": template_success and list_templates,
         "analytics": all([dashboard_analytics, campaign_analytics]),
-        "email_personalization": all([validate_personalization, preview_personalization]),
-        "tracking": all([track_open, track_click, unsubscribe, unsubscribe_page])
+        "tracking": all([track_open, unsubscribe_page])
     }
     
     print("\n" + "="*50)
@@ -1365,6 +1429,20 @@ def main():
     for category, result in results.items():
         status_icon = "✅" if result else "❌"
         print(f"{status_icon} {category.replace('_', ' ').title()}")
+    
+    # Print specific results for previously failing APIs
+    print("\n" + "="*50)
+    print("📊 PREVIOUSLY FAILING APIS RESULTS:")
+    print("="*50)
+    
+    print(f"✅ Contact Management - Get Contact by ID: {'PASSED' if get_contact_result else 'FAILED'}")
+    print(f"✅ Contact Management - Export Contacts (CSV): {'PASSED' if export_csv_result else 'FAILED'}")
+    print(f"✅ Contact Management - Export Contacts (Excel): {'PASSED' if export_excel_result else 'FAILED'}")
+    print(f"✅ Template Management - Get Template by ID: {'PASSED' if get_template_result else 'FAILED'}")
+    print(f"✅ Email Personalization - Validate: {'PASSED' if validate_personalization_result else 'FAILED'}")
+    print(f"✅ Email Personalization - Preview: {'PASSED' if preview_personalization_result else 'FAILED'}")
+    print(f"✅ Tracking - Click Tracking: {'PASSED' if track_click_result else 'FAILED'}")
+    print(f"✅ Tracking - Unsubscribe: {'PASSED' if unsubscribe_result else 'FAILED'}")
     
     return 0 if success else 1
 
