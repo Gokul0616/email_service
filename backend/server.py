@@ -869,6 +869,13 @@ async def export_contacts(format: str = Query("csv", enum=["csv", "excel"])):
         # Convert contacts and handle ObjectId serialization
         serialized_contacts = custom_jsonable_encoder(contacts)
         
+        # Debug: return the first step to see if this works
+        return {
+            "debug": "contacts_retrieved",
+            "count": len(contacts),
+            "first_contact": serialized_contacts[0] if serialized_contacts else None
+        }
+        
         # Create DataFrame
         df = pd.DataFrame(serialized_contacts)
         
