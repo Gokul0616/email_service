@@ -861,46 +861,7 @@ async def bulk_import_contacts(file: UploadFile = File(...)):
 async def export_contacts(format: str = Query("csv", enum=["csv", "excel"])):
     """Export contacts to CSV or Excel"""
     try:
-        contacts = db_manager.get_contacts(filters={}, limit=10000)
-        
-        if not contacts:
-            raise HTTPException(status_code=404, detail="No contacts found")
-        
-        # Convert contacts and handle ObjectId serialization
-        serialized_contacts = custom_jsonable_encoder(contacts)
-        
-        # Debug: return the first step to see if this works
-        return {
-            "debug": "contacts_retrieved",
-            "count": len(contacts),
-            "first_contact": serialized_contacts[0] if serialized_contacts else None
-        }
-        
-        # Create DataFrame
-        df = pd.DataFrame(serialized_contacts)
-        
-        # Remove internal MongoDB fields that shouldn't be exported
-        columns_to_remove = ['_id']
-        df = df.drop(columns=[col for col in columns_to_remove if col in df.columns])
-        
-        if format == "csv":
-            output = io.StringIO()
-            df.to_csv(output, index=False)
-            response = Response(
-                content=output.getvalue(),
-                media_type="text/csv",
-                headers={"Content-Disposition": "attachment; filename=contacts.csv"}
-            )
-            return response
-        else:  # excel
-            output = io.BytesIO()
-            df.to_excel(output, index=False)
-            response = Response(
-                content=output.getvalue(),
-                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                headers={"Content-Disposition": "attachment; filename=contacts.xlsx"}
-            )
-            return response
+        return {"status": "test", "format": format}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
