@@ -774,7 +774,11 @@ async def get_contact(contact_id: str):
         contact = db_manager.get_contact(contact_id)
         if not contact:
             raise HTTPException(status_code=404, detail="Contact not found")
-        return contact
+        
+        # Use custom encoder to handle ObjectId
+        serialized_contact = custom_jsonable_encoder(contact)
+        
+        return MongoJSONEncoder(content=serialized_contact)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
