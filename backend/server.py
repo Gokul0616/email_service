@@ -916,7 +916,11 @@ async def get_template(template_id: str):
         template = db_manager.get_template(template_id)
         if not template:
             raise HTTPException(status_code=404, detail="Template not found")
-        return template
+        
+        # Use custom encoder to handle ObjectId
+        serialized_template = custom_jsonable_encoder(template)
+        
+        return MongoJSONEncoder(content=serialized_template)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
