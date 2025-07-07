@@ -64,6 +64,20 @@ class UserRegistration(BaseModel):
     password: str
     full_name: str
 
+# Personalization request models
+class PersonalizationRequest(BaseModel):
+    content: str
+    required_fields: Optional[List[str]] = None
+
+class PersonalizationPreviewRequest(BaseModel):
+    content: str
+
+# Unsubscribe request model
+class UnsubscribeEmailRequest(BaseModel):
+    email: str
+    campaign_id: Optional[str] = None
+    reason: Optional[str] = None
+
 # Initialize services
 email_auth = EmailAuthenticator(domain="pixelrisewebco.com")
 email_relay = EmailRelay()
