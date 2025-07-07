@@ -897,14 +897,6 @@ async def bulk_import_contacts(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/contacts/export")
-async def export_contacts(format: str = Query("csv", enum=["csv", "excel"])):
-    """Export contacts to CSV or Excel"""
-    try:
-        return {"status": "test", "format": format}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 # ===========================================
 # EMAIL TEMPLATE ENDPOINTS
 # ===========================================
