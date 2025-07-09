@@ -4,7 +4,7 @@ import sys
 import uuid
 from datetime import datetime
 
-BASE_URL = "https://95f130cc-f3a5-499b-b546-b68b3833d046.preview.emergentagent.com"
+BASE_URL = "https://5e599da6-0b48-4d4b-9660-93b1488c4b1b.preview.emergentagent.com"
 
 def test_api(name, method, endpoint, expected_status=200, data=None, params=None, files=None):
     """Test an API endpoint and return the result"""

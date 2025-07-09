@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import uuid
 
 class EmailServiceTester:
-    def __init__(self, base_url="https://95f130cc-f3a5-499b-b546-b68b3833d046.preview.emergentagent.com"):
+    def __init__(self, base_url="https://5e599da6-0b48-4d4b-9660-93b1488c4b1b.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0

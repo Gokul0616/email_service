@@ -35,9 +35,9 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://mail-preview-tool.preview.emergentagent.com",
+        "https://5e599da6-0b48-4d4b-9660-93b1488c4b1b.preview.emergentagent.com",
         "http://localhost:3000",
-        "https://95f130cc-f3a5-499b-b546-b68b3833d046.preview.emergentagent.com",
+        "https://5e599da6-0b48-4d4b-9660-93b1488c4b1b.preview.emergentagent.com",
         "*"
     ],
     allow_credentials=True,
