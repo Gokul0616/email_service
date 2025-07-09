@@ -75,7 +75,7 @@ const DomainRegistration = ({ backendUrl }) => {
     if (!selectedDomain) return;
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/domains/register`, {
+      const response = await fetch(`${backendUrl}/api/domains/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
