@@ -29,17 +29,23 @@ from domain_routes import router as domain_router
 
 app = FastAPI()
 
-# Include domain registration router
-app.include_router(domain_router)
-
-# CORS configuration
+# CORS configuration - Must be before including routers
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://mail-preview-tool.preview.emergentagent.com",
+        "http://localhost:3000",
+        "https://95f130cc-f3a5-499b-b546-b68b3833d046.preview.emergentagent.com",
+        "*"
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
+
+# Include domain registration router
+app.include_router(domain_router)
 
 # Data models
 class EmailMessage(BaseModel):
