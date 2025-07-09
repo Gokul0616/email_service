@@ -20,14 +20,14 @@ import re
 import bleach
 
 # Import custom modules
-from database import get_database, db_manager
-from mongo_encoder import MongoJSONEncoder, custom_jsonable_encoder
-from email_relay import EmailRelay
-from email_auth import EmailAuthenticator
-from models import *
-from campaign_service import CampaignService
-from email_personalization import EmailPersonalizer
-from domain_routes import router as domain_router
+from .database import get_database, db_manager
+from .mongo_encoder import MongoJSONEncoder, custom_jsonable_encoder
+from .email_relay import EmailRelay
+from .email_auth import EmailAuthenticator
+from .models import *
+from .campaign_service import CampaignService
+from .email_personalization import EmailPersonalizer
+from .domain_routes import router as domain_router
 
 app = FastAPI()
 
