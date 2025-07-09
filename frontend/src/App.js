@@ -43,6 +43,10 @@ function App() {
         return <TemplateManager backendUrl={backendUrl} />;
       case 'analytics':
         return <Analytics backendUrl={backendUrl} />;
+      case 'domain-registration':
+        return <DomainRegistration backendUrl={backendUrl} />;
+      case 'domain-manager':
+        return <DomainManager backendUrl={backendUrl} />;
       case 'settings':
         return <Settings backendUrl={backendUrl} />;
       default:
