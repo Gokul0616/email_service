@@ -42,7 +42,7 @@ const DomainRegistration = ({ backendUrl }) => {
     
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/domains/search?query=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`${backendUrl}/api/domains/search?query=${encodeURIComponent(searchQuery)}`);
       const data = await response.json();
       setSearchResults(data);
     } catch (error) {
