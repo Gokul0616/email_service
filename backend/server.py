@@ -18,7 +18,7 @@ import re
 import bleach
 
 # Import custom modules
-from database import get_database
+from database import get_database, db_manager
 from mongo_encoder import MongoJSONEncoder, custom_jsonable_encoder
 from email_relay import EmailRelay
 from email_auth import EmailAuthenticator
