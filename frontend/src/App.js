@@ -26,6 +26,8 @@ function App() {
     { id: 'contacts', name: 'Contacts', icon: '👥', description: 'Contact Management' },
     { id: 'templates', name: 'Templates', icon: '📝', description: 'Email Templates' },
     { id: 'analytics', name: 'Analytics', icon: '📈', description: 'Campaign Performance' },
+    { id: 'domain-registration', name: 'Register Domain', icon: '🌐', description: 'Register New Domains' },
+    { id: 'domain-manager', name: 'Domain Manager', icon: '🔧', description: 'Manage Your Domains' },
     { id: 'settings', name: 'Settings', icon: '⚙️', description: 'System Configuration' },
   ];
 
