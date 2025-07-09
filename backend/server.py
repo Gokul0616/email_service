@@ -35,9 +35,9 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://5e599da6-0b48-4d4b-9660-93b1488c4b1b.preview.emergentagent.com",
+        "https://4b3d5e70-b539-470c-93ba-7d7d8fbbb73c.preview.emergentagent.com",
         "http://localhost:3000",
-        "https://5e599da6-0b48-4d4b-9660-93b1488c4b1b.preview.emergentagent.com",
+        "https://4b3d5e70-b539-470c-93ba-7d7d8fbbb73c.preview.emergentagent.com",
         "*"
     ],
     allow_credentials=True,
