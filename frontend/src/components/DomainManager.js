@@ -5,7 +5,7 @@ import {
   Eye, EyeOff, Lock, Unlock, AlertCircle, TrendingUp
 } from 'lucide-react';
 
-const DomainManager = () => {
+const DomainManager = ({ backendUrl }) => {
   const [domains, setDomains] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDomain, setSelectedDomain] = useState(null);
