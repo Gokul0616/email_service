@@ -29,6 +29,9 @@ from domain_routes import router as domain_router
 
 app = FastAPI()
 
+# Include domain registration router
+app.include_router(domain_router)
+
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
