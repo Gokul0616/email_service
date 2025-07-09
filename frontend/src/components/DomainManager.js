@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Globe, Settings, Refresh, Calendar, CreditCard, Shield, 
+  Globe, Settings, RefreshCw, Calendar, CreditCard, Shield, 
   ExternalLink, Copy, Check, X, Edit, Trash2, Plus, Server,
   Eye, EyeOff, Lock, Unlock, AlertCircle, TrendingUp
 } from 'lucide-react';
