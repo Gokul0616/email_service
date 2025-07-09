@@ -29,7 +29,7 @@ const DomainRegistration = ({ backendUrl }) => {
 
   const fetchPopularTlds = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/domains/pricing/tlds`);
+      const response = await fetch(`${backendUrl}/api/domains/pricing/tlds`);
       const data = await response.json();
       setPopularTlds(data.tlds.filter(tld => tld.popular));
     } catch (error) {
