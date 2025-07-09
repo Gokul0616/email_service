@@ -20,7 +20,7 @@ class DomainRegistrationSystem:
     
     def __init__(self):
         self.mongo_client = MongoClient(os.getenv('MONGO_URL'))
-        self.db = self.mongo_client.get_database()
+        self.db = self.mongo_client.get_database("cold_email_db")
         
         # Collections
         self.domains = self.db.registered_domains
