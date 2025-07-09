@@ -170,7 +170,7 @@ class PaymentRequest(BaseModel):
     payment_id: str = Field(..., min_length=1)
     payment_method: str = Field('credit_card', pattern=r'^(credit_card|paypal|bank_transfer)$')
     card_number: Optional[str] = Field(None, min_length=13, max_length=19)
-    card_expiry: Optional[str] = Field(None, regex=r'^\d{2}/\d{2}$')
+    card_expiry: Optional[str] = Field(None, pattern=r'^\d{2}/\d{2}$')
     card_cvv: Optional[str] = Field(None, min_length=3, max_length=4)
     card_name: Optional[str] = Field(None, min_length=1, max_length=100)
     
