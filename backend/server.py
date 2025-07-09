@@ -85,6 +85,38 @@ email_auth = EmailAuthenticator(domain="pixelrisewebco.com")
 email_relay = EmailRelay()
 personalizer = EmailPersonalizer()
 
+# Add OPTIONS handler for CORS preflight requests
+@app.options("/{path:path}")
+async def options_handler(request: Request, path: str):
+    return Response(
+        content="",
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Max-Age": "86400",
+        }
+    )
+
+# Health check endpoint
+@app.get("/api/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "service": "cold-email-campaign-system",
+        "features": [
+            "Email Sending",
+            "Campaign Management", 
+            "Contact Management",
+            "Email Templates",
+            "Analytics",
+            "Domain Registration",
+            "DNS Management",
+            "WHOIS Lookup"
+        ]
+    }
+
 # DNS MX Record Lookup Implementation
 class DNSResolver:
     def __init__(self):
