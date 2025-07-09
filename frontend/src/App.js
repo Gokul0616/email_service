@@ -8,6 +8,8 @@ import ContactManager from './components/ContactManager';
 import TemplateManager from './components/TemplateManager';
 import Analytics from './components/Analytics';
 import Settings from './components/Settings';
+import DomainRegistration from './components/DomainRegistration';
+import DomainManager from './components/DomainManager';
 
 function App() {
   const [activeView, setActiveView] = useState('dashboard');
