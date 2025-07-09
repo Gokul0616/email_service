@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Domain Registration Form Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Domain Registration Form Test</h1>
+    <p>This form tests the domain registration endpoint with the exact structure used in the frontend.</p>
+    
+    <form id="registrationForm">
+        <div class="form-group">
+            <label for="domain">Domain:</label>
+            <input type="text" id="domain" name="domain" value="testform123.com" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="years">Years:</label>
+            <input type="number" id="years" name="years" value="1" min="1" max="10" required>
+        </div>
+        
+        <h2>Registrant Information</h2>
+        
+        <div class="form-group">
+            <label for="first_name">First Name:</label>
+            <input type="text" id="first_name" name="first_name" value="John" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="last_name">Last Name:</label>
+            <input type="text" id="last_name" name="last_name" value="Doe" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="john@example.com" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">Phone:</label>
+            <input type="tel" id="phone" name="phone" value="1234567890" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="address">Address:</label>
+            <input type="text" id="address" name="address" value="123 Main St" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="city">City:</label>
+            <input type="text" id="city" name="city" value="New York" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="state">State:</label>
+            <input type="text" id="state" name="state" value="NY" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="postal_code">Postal Code:</label>
+            <input type="text" id="postal_code" name="postal_code" value="10001" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="country">Country:</label>
+            <input type="text" id="country" name="country" value="US" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="organization">Organization (Optional):</label>
+            <input type="text" id="organization" name="organization" value="">
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="privacy_protection" name="privacy_protection" checked>
+                Enable privacy protection
+            </label>
+        </div>
+        
+        <button type="submit">Register Domain</button>
+    </form>
+    
+    <div id="result">
+        <h2>Result:</h2>
+        <pre id="resultContent">Submit the form to see the result</pre>
+    </div>
+    
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const domain = document.getElementById('domain').value;
+            const years = parseInt(document.getElementById('years').value);
+            const first_name = document.getElementById('first_name').value;
+            const last_name = document.getElementById('last_name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const city = document.getElementById('city').value;
+            const state = document.getElementById('state').value;
+            const postal_code = document.getElementById('postal_code').value;
+            const country = document.getElementById('country').value;
+            const organization = document.getElementById('organization').value;
+            const privacy_protection = document.getElementById('privacy_protection').checked;
+            
+            // Create request body
+            const requestBody = {
+                domain: domain,
+                years: years,
+                registrant_info: {
+                    first_name: first_name,
+                    last_name: last_name,
+                    email: email,
+                    phone: phone,
+                    address: address,
+                    city: city,
+                    state: state,
+                    postal_code: postal_code,
+                    country: country,
+                    organization: organization,
+                    privacy_protection: privacy_protection
+                }
+            };
+            
+            // Display request body
+            document.getElementById('resultContent').textContent = 'Sending request...\n\nRequest Body:\n' + JSON.stringify(requestBody, null, 2);
+            
+            // Send request
+            fetch('https://4b3d5e70-b539-470c-93ba-7d7d8fbbb73c.preview.emergentagent.com/api/domains/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            })
+            .then(response => {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json().then(data => ({ status: response.status, body: data }));
+                } else {
+                    return response.text().then(text => ({ status: response.status, body: text }));
+                }
+            })
+            .then(result => {
+                document.getElementById('resultContent').textContent = 'Status: ' + result.status + '\n\nResponse:\n' + 
+                    (typeof result.body === 'object' ? JSON.stringify(result.body, null, 2) : result.body);
+            })
+            .catch(error => {
+                document.getElementById('resultContent').textContent = 'Error: ' + error.message;
+            });
+        });
+    </script>
+</body>
+</html>
