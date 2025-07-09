@@ -24,7 +24,7 @@ const DomainManager = ({ backendUrl }) => {
   const fetchDomains = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/domains/my-domains?user_email=${userEmail}`);
+      const response = await fetch(`${backendUrl}/api/domains/my-domains?user_email=${userEmail}`);
       const data = await response.json();
       setDomains(data.domains || []);
     } catch (error) {
