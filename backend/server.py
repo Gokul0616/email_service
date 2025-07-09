@@ -403,13 +403,14 @@ smtp_client = SMTPClient()
 async def startup_event():
     """Start services on application startup"""
     print("Starting Custom Email Server...")
-    smtp_server.start_server()
+    # smtp_server.start_server()  # Commented out until properly implemented
     print("Email authentication system initialized")
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Stop services on application shutdown"""
-    smtp_server.stop_server()
+    # smtp_server.stop_server()  # Commented out until properly implemented
+    pass
 
 # API Endpoints
 
