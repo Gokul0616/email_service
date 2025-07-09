@@ -1,38 +1,31 @@
-from fastapi import FastAPI, HTTPException, Query, UploadFile, File, Form, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response, HTMLResponse, RedirectResponse
-from pydantic import BaseModel
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+import uvicorn
 import os
-import socket
-import ssl
-import dns.resolver
-import uuid
-import re
+from dotenv import load_dotenv
+from typing import Dict, List, Optional
+from pydantic import BaseModel, EmailStr
 from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any
 import json
-import csv
-import io
-import asyncio
-import pandas as pd
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import base64
 from bson import ObjectId
-from fastapi.encoders import jsonable_encoder
+import pandas as pd
+import io
+from fastapi.responses import StreamingResponse
+from jinja2 import Template
+import re
+import bleach
 
-# Import our custom modules
-from backend.email_auth import EmailAuthenticator
-from backend.smtp_server import smtp_server
-from backend.email_relay import EmailRelay
-from backend.domain_setup_guide import get_domain_setup_guide
-from backend.mongo_encoder import MongoJSONEncoder, custom_jsonable_encoder
-
-# Import new campaign system modules
-from backend.models import *
-from backend.database import db_manager
-from backend.campaign_service import campaign_service
-from backend.email_personalization import EmailPersonalizer
+# Import custom modules
+from database import get_database
+from mongo_encoder import MongoJSONEncoder, custom_jsonable_encoder
+from email_relay import EmailRelay
+from email_auth import EmailAuthChecker
+from models import *
+from campaign_service import CampaignService
+from email_personalization import EmailPersonalization
+from domain_routes import router as domain_router
 
 app = FastAPI()
 
