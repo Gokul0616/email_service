@@ -419,7 +419,7 @@ const DNSEditor = ({ domain, onClose, onUpdate }) => {
 
   const deleteDNSRecord = async (recordId) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/domains/${domain.domain}/dns/${recordId}`, {
+      const response = await fetch(`${backendUrl}/api/domains/${domain.domain}/dns/${recordId}`, {
         method: 'DELETE'
       });
 
