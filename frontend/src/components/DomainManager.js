@@ -36,7 +36,7 @@ const DomainManager = ({ backendUrl }) => {
 
   const renewDomain = async (domain, years = 1) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/domains/${domain}/renew`, {
+      const response = await fetch(`${backendUrl}/api/domains/${domain}/renew`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
