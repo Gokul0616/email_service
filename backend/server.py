@@ -1,9 +1,11 @@
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response, Query, Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 import os
+import dns.resolver
+import socket
 from dotenv import load_dotenv
 from typing import Dict, List, Optional
 from pydantic import BaseModel, EmailStr
