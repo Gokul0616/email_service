@@ -818,11 +818,13 @@ test_plan:
     - "Template Management APIs"
     - "Email Personalization APIs"
     - "Tracking APIs"
+    - "Domain Registration"
   stuck_tasks:
     - "Contact Management APIs"
     - "Template Management APIs"
     - "Email Personalization APIs"
     - "Tracking APIs"
+    - "Domain Registration"
   test_all: false
   test_priority: "high_first"
 
