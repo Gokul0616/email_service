@@ -75,19 +75,39 @@ const DomainRegistration = ({ backendUrl }) => {
     if (!selectedDomain) return;
 
     try {
+      // Clean up registrant info to ensure it matches API requirements
+      const cleanedRegistrantInfo = {
+        first_name: registrantInfo.first_name || '',
+        last_name: registrantInfo.last_name || '',
+        email: registrantInfo.email || '',
+        phone: registrantInfo.phone || '',
+        address: registrantInfo.address || '',
+        city: registrantInfo.city || '',
+        state: registrantInfo.state || '',
+        postal_code: registrantInfo.postal_code || '',
+        country: registrantInfo.country || '',
+        organization: registrantInfo.organization || '',
+        privacy_protection: registrantInfo.privacy_protection !== undefined ? registrantInfo.privacy_protection : true
+      };
+
+      const requestBody = {
+        domain: selectedDomain.domain,
+        years: selectedDomain.years || 1,
+        registrant_info: cleanedRegistrantInfo
+      };
+
+      console.log('Sending registration request:', requestBody);
+
       const response = await fetch(`${backendUrl}/api/domains/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          domain: selectedDomain.domain,
-          years: selectedDomain.years || 1,
-          registrant_info: registrantInfo
-        })
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();
+      console.log('Registration response:', data);
       
       if (response.ok) {
         // Process payment
@@ -113,7 +133,8 @@ const DomainRegistration = ({ backendUrl }) => {
           alert('Payment failed. Please try again.');
         }
       } else {
-        alert(`Registration failed: ${data.detail}`);
+        console.error('Registration failed:', data);
+        alert(`Registration failed: ${data.detail || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error registering domain:', error);
