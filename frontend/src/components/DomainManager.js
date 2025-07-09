@@ -79,7 +79,7 @@ const DomainManager = ({ backendUrl }) => {
   const toggleAutoRenew = async (domain) => {
     try {
       const domainInfo = domains.find(d => d.domain === domain);
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/domains/${domain}/update`, {
+      const response = await fetch(`${backendUrl}/api/domains/${domain}/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
