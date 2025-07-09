@@ -383,7 +383,7 @@ const DNSEditor = ({ domain, onClose, onUpdate }) => {
 
   const fetchDNSRecords = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/domains/${domain.domain}/dns`);
+      const response = await fetch(`${backendUrl}/api/domains/${domain.domain}/dns`);
       const data = await response.json();
       setDnsRecords(data.records || []);
     } catch (error) {
