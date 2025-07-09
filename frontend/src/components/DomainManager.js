@@ -395,7 +395,7 @@ const DNSEditor = ({ domain, onClose, onUpdate }) => {
 
   const addDNSRecord = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/domains/${domain.domain}/dns`, {
+      const response = await fetch(`${backendUrl}/api/domains/${domain.domain}/dns`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
