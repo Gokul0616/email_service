@@ -48,7 +48,7 @@ const DomainManager = ({ backendUrl }) => {
       
       if (response.ok) {
         // Process payment for renewal
-        const paymentResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/domains/payment/process`, {
+        const paymentResponse = await fetch(`${backendUrl}/api/domains/payment/process`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
