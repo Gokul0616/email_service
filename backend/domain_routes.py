@@ -8,8 +8,8 @@ from datetime import datetime, timedelta
 import json
 from bson import ObjectId
 
-from domain_registration import DomainRegistrationSystem
-from domain_models import (
+from .domain_registration import DomainRegistrationSystem
+from .domain_models import (
     DomainSearchRequest, DomainRegistrationRequest, DomainTransferRequest,
     DomainRenewalRequest, DNSRecordRequest, DNSRecordUpdate, DNSRecordDelete,
     PaymentRequest, DomainSearchResult, DomainRegistrationResult,
