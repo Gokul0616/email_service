@@ -102,7 +102,7 @@ const DomainManager = ({ backendUrl }) => {
 
   const getAuthCode = async (domain) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/domains/auth-code/${domain}`);
+      const response = await fetch(`${backendUrl}/api/domains/auth-code/${domain}`);
       const data = await response.json();
       
       if (response.ok) {
