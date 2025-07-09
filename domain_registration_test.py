@@ -289,8 +289,10 @@ class DomainRegistrationTester:
 
     def test_domain_registration_extra_fields(self):
         """Test domain registration with extra unexpected fields"""
+        # Generate a random domain name to avoid reserved domain issues
+        random_domain = f"test{uuid.uuid4().hex[:8]}.com"
         data = {
-            "domain": "example.com",
+            "domain": random_domain,
             "years": 1,
             "registrant_info": {
                 "first_name": "John",
