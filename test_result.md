@@ -805,6 +805,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Domain registration functionality has issues with form submission. The form inputs don't have name attributes, which prevents proper form data collection. The form submission handler doesn't correctly format the registrant_info object as required by the API. The backend API endpoint works correctly when tested directly with curl, but the frontend form submission is causing 422 validation errors."
+      - working: false
+        agent: "testing"
+        comment: "Comprehensive testing confirms the backend API works correctly with properly formatted data. The issue is in the frontend form submission. The form inputs in DomainRegistration.js don't have name attributes, which prevents the form data from being properly collected. When the form is submitted, the registrant_info object might be missing required fields, causing the 422 validation error from the backend API."
 
 metadata:
   created_by: "testing_agent"
