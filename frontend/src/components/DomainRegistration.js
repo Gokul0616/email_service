@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, ShoppingCart, CreditCard, Check, X, Star, TrendingUp, Globe, Clock, Shield, Zap } from 'lucide-react';
 
-const DomainRegistration = () => {
+const DomainRegistration = ({ backendUrl }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
